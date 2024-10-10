@@ -33,8 +33,9 @@ public class UserController {
         }
     }
 
-    @PutMapping("/{id}")
-    public User updateUser(@PathVariable int id, @Valid @RequestBody User user) {
+    @PutMapping
+    public User updateUser(@Valid @RequestBody User user) {
+        int id = user.getId();
         if (!users.containsKey(id)) {
             log.error("Не найден пользователь с ID: {}", id);
             throw new ValidationException("Не найден пользователь с id " + id);

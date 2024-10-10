@@ -6,10 +6,8 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.Duration;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +29,7 @@ public class FilmValidationTests {
     void setValidFilm() {
         filmController = new FilmController();
         validFilm = new Film(0, "Valid Film", "This is a valid film description.",
-                LocalDate.of(2024, 10, 10), Duration.ofMinutes(120));
+                LocalDate.of(2024, 10, 10), 120L);
     }
 
     @Test
@@ -43,7 +41,7 @@ public class FilmValidationTests {
     @Test
     public void filmWithEmptyName() {
         Film filmWithEmptyName = new Film(0, "", "Description",
-                LocalDate.of(2024, 10, 10), Duration.ofMinutes(120));
+                LocalDate.of(2024, 10, 10), 120L);
         assertFalse(validator.validate(filmWithEmptyName).isEmpty(), "Ожидалась ошибка: Название " +
                 "не может быть пустым.");
     }
@@ -52,7 +50,7 @@ public class FilmValidationTests {
     public void filmWithLongDescription() {
         String longDescription = "a".repeat(201);
         Film filmWithLongDescription = new Film(0, "Film Name", longDescription,
-                LocalDate.of(2024, 10, 10), Duration.ofMinutes(120));
+                LocalDate.of(2024, 10, 10), 120L);
         assertFalse(validator.validate(filmWithLongDescription).isEmpty(), "Ожидалась ошибка: " +
                 "Максимальная длина описания — 200 символов.");
     }
@@ -60,7 +58,7 @@ public class FilmValidationTests {
     @Test
     public void filmWithInvalidReleaseDate() {
         Film filmWithFutureReleaseDate = new Film(0, "Film Name", "Description",
-                LocalDate.of(3000, 1, 1), Duration.ofMinutes(120));
+                LocalDate.of(3000, 1, 1), 120L);
         assertFalse(validator.validate(filmWithFutureReleaseDate).isEmpty(), "Ожидалась ошибка: Дата релиза " +
                 "не может быть раньше 28 декабря 1895 года.");
     }
@@ -68,18 +66,14 @@ public class FilmValidationTests {
     @Test
     public void filmWithNegativeDuration() {
         Film filmWithNegativeDuration = new Film(0, "Film Name", "Description",
-                LocalDate.of(2024, 10, 10), Duration.ofMinutes(-120));
-        ValidationException exception = assertThrows(ValidationException.class,
-                () -> filmController.createFilm(filmWithNegativeDuration));
-        assert exception.getMessage().equals("Продолжительность фильма должна быть положительным числом.");
+                LocalDate.of(2024, 10, 10), (long) -120);
+        assertFalse(validator.validate(filmWithNegativeDuration).isEmpty(),"Продолжительность фильма должна быть положительным числом.");
     }
 
     @Test
     public void filmWithNullDuration() {
         Film filmWithNullDuration = new Film(0, "Film Name", "Description",
                 LocalDate.of(2024, 10, 10), null);
-        ValidationException exception = assertThrows(ValidationException.class,
-                () -> filmController.createFilm(filmWithNullDuration));
-        assert exception.getMessage().equals("Продолжительность фильма должна быть положительным числом.");
+        assertFalse(validator.validate(filmWithNullDuration).isEmpty(),"Продолжительность фильма должна быть положительным числом.");
     }
 }
