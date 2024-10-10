@@ -43,6 +43,7 @@ public class UserController {
         try {
         validateLogin(user);
         User updatedUser = users.get(id);
+        updatedUser.setName(user.getName());
         updatedUser.setEmail(user.getEmail());
         updatedUser.setLogin(user.getLogin());
         updatedUser.setBirthday(user.getBirthday());
