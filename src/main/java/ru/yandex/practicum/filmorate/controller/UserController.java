@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
@@ -21,16 +22,11 @@ public class UserController {
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
-        try {
             validateLogin(user);
             user.setId(currentId++);
             users.put(user.getId(), user);
             log.info("Создан пользователь с ID: {}", user.getId());
             return user;
-        } catch (ValidationException exp) {
-            log.error("Ошибка валидации при создании пользователя: {}", exp.getMessage());
-            throw exp;
-        }
     }
 
     @PutMapping
@@ -38,9 +34,8 @@ public class UserController {
         int id = user.getId();
         if (!users.containsKey(id)) {
             log.error("Не найден пользователь с ID: {}", id);
-            throw new ValidationException("Не найден пользователь с id " + id);
+            throw new NotFoundException("Не найден пользователь с id " + id);
         }
-        try {
         validateLogin(user);
         User updatedUser = users.get(id);
         updatedUser.setName(user.getName());
@@ -49,10 +44,6 @@ public class UserController {
         updatedUser.setBirthday(user.getBirthday());
         log.info("Обновлен пользователь с ID: {}", id);
         return updatedUser;
-        } catch (ValidationException exp) {
-            log.error("Ошибка валидации при обновлении пользователя: {}", exp.getMessage());
-            throw exp;
-        }
     }
 
     @GetMapping
