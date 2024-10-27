@@ -25,7 +25,6 @@ public class UserValidationTests {
 
     @BeforeEach
     void setUp() {
-        // Инициализация валидатора
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
             validator = factory.getValidator();
         }
@@ -34,8 +33,8 @@ public class UserValidationTests {
         UserService userService = new UserService(userStorage);
         userController = new UserController(userService);
 
-        // Инициализация валидного пользователя
-        validUser = new User(0, "user@example.com", "username", "User Name", LocalDate.of(2000, 1, 1));
+        validUser = new User(0, "user@example.com", "username", "User Name",
+                LocalDate.of(2000, 1, 1));
     }
 
     @Test
@@ -62,11 +61,13 @@ public class UserValidationTests {
 
     @Test
     public void userWithEmptyLogin() {
-        User userWithEmptyName = new User(0, "email@example.com", "login", null, LocalDate.of(2000, 1, 1));
+        User userWithEmptyName = new User(0, "email@example.com", "login", null,
+                LocalDate.of(2000, 1, 1));
         User createdUser = userController.createUser(userWithEmptyName);
 
         assertNotNull(createdUser, "Созданный пользователь не должен быть null");
-        assertEquals("login", createdUser.getName(), "Если имя пустое, логин будет использован в качестве имени.");
+        assertEquals("login", createdUser.getName(), "Если имя пустое, " +
+                "логин будет использован в качестве имени.");
     }
 
     @Test
