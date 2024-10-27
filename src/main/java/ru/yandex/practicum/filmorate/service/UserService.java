@@ -50,6 +50,10 @@ public class UserService {
 
         user.getFriends().add(friendId);
         friend.getFriends().add(userId);
+
+        userStorage.updateUser(user);
+        userStorage.updateUser(friend);
+
         return Map.of("Друг", "Вы добавили " + friend.getName() + " в друзья");
     }
 
@@ -68,6 +72,10 @@ public class UserService {
 
         user.getFriends().remove(friendId);
         friend.getFriends().remove(userId);
+
+        userStorage.updateUser(user);
+        userStorage.updateUser(friend);
+
         return Map.of("Друг", "Вы удалили " + friend.getName() + " из друзей");
     }
 
