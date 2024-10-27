@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserStorage userStorage;
-    private final Map<Integer, List<Integer>> userFriends = new HashMap<>();
 
     @Autowired
     public UserService(UserStorage userStorage) {
@@ -80,18 +79,19 @@ public class UserService {
     }
 
     public List<User> getCommonFriends(int userId, int friendId) {
-        List<Integer> friendsOfUser = userFriends.get(userId);
-        List<Integer> friendsOfFriend = userFriends.get(friendId);
+        User user = userStorage.getUserById(userId);
+        User friend = userStorage.getUserById(friendId);
         List<User> commonFriends = new ArrayList<>();
 
-        if (friendsOfUser != null && friendsOfFriend != null) {
-            for (Integer friend : friendsOfUser) {
-                if (friendsOfFriend.contains(friend)) {
-                    commonFriends.add(userStorage.getUserById(friend));
-                }
-            }
+        if (user == null || friend == null) {
+            int missingId = user == null ? userId : friendId;
+            throw new NotFoundException("Пользователь с ID " + missingId + " не найден.");
         }
-        return commonFriends;
+
+        return user.getFriends().stream()
+                .filter(friendIdValue -> friend.getFriends().contains(friendIdValue))
+                .map(userStorage::getUserById)
+                .collect(Collectors.toList());
     }
 
     public Collection<User> getFriends(int userId) {
