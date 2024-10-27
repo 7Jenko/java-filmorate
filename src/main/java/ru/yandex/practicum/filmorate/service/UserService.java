@@ -94,14 +94,15 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public Collection<User> getFriends(int userId) {
+    public List<User> getFriends(int userId) {
         User user = userStorage.getUserById(userId);
         if (user == null) {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден.");
         }
 
         return user.getFriends().stream()
-                .map(friendId -> userStorage.getUserById(friendId))
-                .collect(Collectors.toSet());
+                .map(userStorage::getUserById)
+                .filter(Objects::nonNull)  // Удаляем возможные null
+                .collect(Collectors.toList());
     }
 }
