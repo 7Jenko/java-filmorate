@@ -34,36 +34,40 @@ public class UserService {
         return userStorage.getAllUsers();
     }
 
-    public void addFriend(int userId, int friendId) {
-        userFriends.computeIfAbsent(userId, k -> new ArrayList<>()).add(friendId);
-        userFriends.computeIfAbsent(friendId, k -> new ArrayList<>()).add(userId);
-
+    public Map<String, String> addFriend(int userId, int friendId) {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
-        if (user != null && friend != null) {
-            user.getFriends().add(friendId);
-            friend.getFriends().add(userId);
+
+        if (user == null || friend == null) {
+            int missingId = user == null ? userId : friendId;
+            throw new NotFoundException("Пользователь с ID " + missingId + " не найден.");
         }
+
+        if (user.getFriends().contains(friendId)) {
+            return Map.of("Друг", friend.getName() + " уже у вас в друзьях");
+        }
+
+        user.getFriends().add(friendId);
+        friend.getFriends().add(userId);
+        return Map.of("Друг", "Вы добавили " + friend.getName() + " в друзья");
     }
 
-    public void removeFriend(int userId, int friendId) {
-        log.debug("Удаление друга с ID {} у пользователя с ID {}", friendId, userId);
-        List<Integer> friendsOfUser = userFriends.get(userId);
-        if (friendsOfUser != null) {
-            friendsOfUser.remove(Integer.valueOf(friendId));
-        }
-        List<Integer> friendsOfFriend = userFriends.get(friendId);
-        if (friendsOfFriend != null) {
-            friendsOfFriend.remove(Integer.valueOf(userId));
-        }
-
+    public Map<String, String> removeFriend(int userId, int friendId) {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
-        if (user != null && friend != null) {
-            user.getFriends().remove(friendId);
-            friend.getFriends().remove(userId);
+
+        if (user == null || friend == null) {
+            int missingId = user == null ? userId : friendId;
+            throw new NotFoundException("Пользователь с ID " + missingId + " не найден.");
         }
-        log.info("Пользователь с ID {} удалил друга с ID {}", userId, friendId);
+
+        if (!user.getFriends().contains(friendId)) {
+            return Map.of("Друг", friend.getName() + " не у вас в друзьях");
+        }
+
+        user.getFriends().remove(friendId);
+        friend.getFriends().remove(userId);
+        return Map.of("Друг", "Вы удалили " + friend.getName() + " из друзей");
     }
 
     public List<User> getCommonFriends(int userId, int friendId) {
