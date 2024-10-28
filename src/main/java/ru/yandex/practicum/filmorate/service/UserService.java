@@ -102,7 +102,7 @@ public class UserService {
 
         return user.getFriends().stream()
                 .map(userStorage::getUserById)
-                .filter(Objects::nonNull)  // Удаляем возможные null
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 }

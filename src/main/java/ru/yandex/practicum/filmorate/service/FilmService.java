@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,10 +16,12 @@ import java.util.stream.Collectors;
 public class FilmService {
 
     private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
     private final Map<Integer, Set<Integer>> filmLikes = new HashMap<>();
 
-    public FilmService(FilmStorage filmStorage) {
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
     }
 
     public Film addFilm(Film film) {
@@ -58,6 +62,11 @@ public class FilmService {
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }
 
+        User user = userStorage.getUserById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+        }
+
         if (!film.getLikes().contains(userId)) {
             film.getLikes().add(userId);
             filmStorage.updateFilm(film);
@@ -71,6 +80,11 @@ public class FilmService {
         Film film = filmStorage.getFilmById(filmId);
         if (film == null) {
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
+        }
+
+        User user = userStorage.getUserById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
         }
 
         Set<Integer> likes = filmLikes.get(filmId);
