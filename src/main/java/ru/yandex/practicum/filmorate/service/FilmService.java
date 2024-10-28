@@ -17,7 +17,6 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final Map<Integer, Set<Integer>> filmLikes = new HashMap<>();
 
     public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
@@ -87,10 +86,7 @@ public class FilmService {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден");
         }
 
-        Set<Integer> likes = filmLikes.get(filmId);
-        if (likes != null) {
-            likes.remove(userId);
-        }
+        film.getLikes().remove(userId);
     }
 
     public List<Film> getMostPopularFilms(int count) {
