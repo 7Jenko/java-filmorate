@@ -95,11 +95,7 @@ public class FilmService {
 
     public List<Film> getMostPopularFilms(int count) {
         return filmStorage.getAllFilms().stream()
-                .sorted((f1, f2) -> {
-                    int f1Likes = filmLikes.getOrDefault(f1.getId(), Collections.emptySet()).size();
-                    int f2Likes = filmLikes.getOrDefault(f2.getId(), Collections.emptySet()).size();
-                    return Integer.compare(f2Likes, f1Likes);
-                })
+                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
                 .limit(count)
                 .collect(Collectors.toList());
     }
