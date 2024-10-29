@@ -7,6 +7,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -21,14 +26,14 @@ public class FilmValidationTests {
 
     @BeforeEach
     void setUp() {
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            validator = factory.getValidator();
-        }
-    }
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
 
-    @BeforeEach
-    void setValidFilm() {
-        filmController = new FilmController();
+        FilmStorage filmStorage = new InMemoryFilmStorage();
+        UserStorage userStorage = new InMemoryUserStorage();
+        FilmService filmService = new FilmService(filmStorage, userStorage);
+        filmController = new FilmController(filmService);
+
         validFilm = new Film(0, "Valid Film", "This is a valid film description.",
                 LocalDate.of(2024, 10, 10), 120L);
     }
@@ -68,20 +73,23 @@ public class FilmValidationTests {
     public void filmWithNegativeDuration() {
         Film filmWithNegativeDuration = new Film(0, "Film Name", "Description",
                 LocalDate.of(2024, 10, 10), (long) -120);
-        assertFalse(validator.validate(filmWithNegativeDuration).isEmpty(),"Продолжительность фильма должна быть положительным числом.");
+        assertFalse(validator.validate(filmWithNegativeDuration).isEmpty(),"Продолжительность фильма " +
+                "должна быть положительным числом.");
     }
 
     @Test
     public void filmWithNullDuration() {
         Film filmWithNullDuration = new Film(0, "Film Name", "Description",
                 LocalDate.of(2024, 10, 10), null);
-        assertFalse(validator.validate(filmWithNullDuration).isEmpty(),"Продолжительность фильма должна быть положительным числом.");
+        assertFalse(validator.validate(filmWithNullDuration).isEmpty(),"Продолжительность фильма " +
+                "должна быть положительным числом.");
     }
 
     @Test
     public void filmWithReleaseDateIsBefore1895() {
         Film filmWithInvalidReleaseDate = new Film(0, "Film Name", "Description",
-                LocalDate.of(1895, Month.DECEMBER, 27), 120L); // Дата перед минимальной датой
-        assertFalse(validator.validate(filmWithInvalidReleaseDate).isEmpty(), "Ожидалась ошибка: Дата релиза не может быть раньше 28 декабря 1895 года.");
+                LocalDate.of(1895, Month.DECEMBER, 27), 120L);
+        assertFalse(validator.validate(filmWithInvalidReleaseDate).isEmpty(), "Ожидалась ошибка: " +
+                "Дата релиза не может быть раньше 28 декабря 1895 года.");
     }
 }

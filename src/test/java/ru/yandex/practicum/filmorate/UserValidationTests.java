@@ -7,6 +7,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 
@@ -18,17 +21,18 @@ public class UserValidationTests {
     private User validUser;
     private Validator validator;
 
+
     @BeforeEach
     void setUp() {
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
             validator = factory.getValidator();
         }
-    }
 
-    @BeforeEach
-    void setValidUser() {
-        userController = new UserController();
-        validUser = new User(0, "test@example.com", "validLogin", "Valid Name",
+        UserStorage userStorage = new InMemoryUserStorage();
+        UserService userService = new UserService(userStorage);
+        userController = new UserController(userService);
+
+        validUser = new User(0, "user@example.com", "username", "User Name",
                 LocalDate.of(2000, 1, 1));
     }
 
@@ -56,10 +60,13 @@ public class UserValidationTests {
 
     @Test
     public void userWithEmptyLogin() {
-        User userWithEmptyLogin = new User(0, "test@example.com", "", "Valid Name",
+        User userWithEmptyName = new User(0, "email@example.com", "login", null,
                 LocalDate.of(2000, 1, 1));
-        assertFalse(validator.validate(userWithEmptyLogin).isEmpty(), "Ожидалась ошибка: " +
-                "Логин не может быть пустым.");
+        User createdUser = userController.createUser(userWithEmptyName);
+
+        assertNotNull(createdUser, "Созданный пользователь не должен быть null");
+        assertEquals("login", createdUser.getName(), "Если имя пустое, " +
+                "логин будет использован в качестве имени.");
     }
 
     @Test
