@@ -1,10 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -47,5 +44,23 @@ public class Film {
     @AssertTrue(message = "Дата релиза не может быть раньше 28 декабря 1895 года.")
     private boolean isRightReleaseDate() {
         return this.releaseDate.isAfter(MIN_DATE_RELEASE);
+    }
+
+    @NotNull(message = "Жанры не могут быть пустыми.")
+    private Set<Genre> genres = new HashSet<>();
+
+    @NotNull(message = "Рейтинг MPA не может быть пустым.")
+    private RatingMpa mpa;
+
+    public void addGenre(Genre genre) {
+        genres.add(genre);
+    }
+
+    public void removeAllGenres() {
+        genres.clear();
+    }
+
+    public void removeGenre(Genre genre) {
+        genres.remove(genre);
     }
 }

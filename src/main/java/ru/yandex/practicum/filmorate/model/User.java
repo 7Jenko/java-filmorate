@@ -4,15 +4,13 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+@Builder(toBuilder = true)
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class User {
     private int id;
@@ -33,12 +31,11 @@ public class User {
     @Builder.Default
     private Set<Integer> friends = new HashSet<>();
 
-    public User(int id, String email, String login, String name, LocalDate birthday) {
-        this.id = id;
-        this.email = email;
-        this.login = login;
-        this.name = name;
-        this.birthday = birthday;
-        this.friends = new HashSet<>();
+    public void addFriend(Integer id) {
+        friends.add(id);
+    }
+
+    public void deleteFriend(Integer id) {
+        friends.remove(id);
     }
 }
