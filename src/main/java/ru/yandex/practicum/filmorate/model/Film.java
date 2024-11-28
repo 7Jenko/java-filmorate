@@ -32,6 +32,8 @@ public class Film {
     @Builder.Default
     private Set<Integer> likes = new HashSet<>();
 
+    private int likesCount;
+
     public Film(int id, String name, String description, LocalDate releaseDate, Long duration) {
         this.id = id;
         this.name = name;
@@ -63,4 +65,6 @@ public class Film {
     public void removeGenre(Genre genre) {
         genres.remove(genre);
     }
+
+
 }
