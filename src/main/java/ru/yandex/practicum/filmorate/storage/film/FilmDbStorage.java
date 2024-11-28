@@ -160,11 +160,11 @@ public class FilmDbStorage implements FilmStorage {
             film.setDescription(rs.getString("description"));
             film.setReleaseDate(rs.getDate("release_date").toLocalDate());
             film.setDuration(rs.getLong("duration"));
-            film.setLikesCount(rs.getInt("likes_count")); // Здесь можно добавить логирование
-            System.out.println("Processing film: " + film); // Логирование
+            film.setLikesCount(rs.getInt("likes_count"));
+            System.out.println("Processing film: " + film);
             return film;
         });
-        System.out.println("Films retrieved: " + films); // Логирование
+        System.out.println("Films retrieved: " + films);
         return films;
     }
 
