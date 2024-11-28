@@ -147,24 +147,14 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getMostPopularFilms(int count) {
-        String sqlQuery = "SELECT f.*, COALESCE(COUNT(l.user_id), 0) AS likes_count "
-                + "FROM films f "
-                + "LEFT JOIN film_likes l ON f.film_id = l.film_id "
-                + "GROUP BY f.film_id "
-                + "ORDER BY likes_count DESC "
+        String sqlQuery = "SELECT films.film_id, COUNT(likes.film_id) AS likeRate FROM films "
+                + "LEFT JOIN likes ON likes.film_id = films.film_id "
+                + "GROUP BY films.film_id "
+                + "ORDER BY likeRate DESC "
                 + "LIMIT ?";
-        List<Film> films = jdbcTemplate.query(sqlQuery, new Object[]{count}, (rs, rowNum) -> {
-            Film film = new Film();
-            film.setId(rs.getInt("film_id"));
-            film.setName(rs.getString("film_name"));
-            film.setDescription(rs.getString("description"));
-            film.setReleaseDate(rs.getDate("release_date").toLocalDate());
-            film.setDuration(rs.getLong("duration"));
-            film.setLikesCount(rs.getInt("likes_count"));
-            System.out.println("Processing film: " + film);
-            return film;
-        });
-        System.out.println("Films retrieved: " + films);
+
+        List<Film> films = jdbcTemplate.query(sqlQuery, new Object[]{count}, this::makeFilm);
+        log.info("Most popular films: {}", films);
         return films;
     }
 

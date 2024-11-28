@@ -58,6 +58,7 @@ public class FilmService {
 
     public void addLike(int filmId, int userId) {
         log.debug("Пользователь с ID {} ставит лайк фильму с ID {}", userId, filmId);
+
         Film film = filmStorage.getFilmById(filmId);
         if (film == null) {
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
@@ -68,12 +69,19 @@ public class FilmService {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден");
         }
 
+        log.debug("Текущее количество лайков для фильма с ID {}: {}", filmId, film.getLikes().size());
+
         if (!film.getLikes().contains(userId)) {
             film.getLikes().add(userId);
+            film.setLikesCount(film.getLikes().size()); // Обновляем количество лайков
+
             filmStorage.updateFilm(film);
+
+            log.debug("Лайк добавлен. Новое количество лайков для фильма с ID {}: {}", filmId, film.getLikes().size());
         } else {
             log.info("Пользователь с ID {} уже ставил лайк фильму с ID {}", userId, filmId);
         }
+
         log.info("Лайк добавлен: Пользователь {} -> Фильм {}", userId, filmId);
     }
 
