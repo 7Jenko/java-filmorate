@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.LikeService;
 
 import java.util.List;
 
@@ -15,10 +16,12 @@ import java.util.List;
 public class FilmController {
 
     private final FilmService filmService;
+    private final LikeService likeService;
 
     @Autowired
-    public FilmController(FilmService filmService) {
+    public FilmController(FilmService filmService, LikeService likeService) {
         this.filmService = filmService;
+        this.likeService = likeService;
     }
 
     @PostMapping
@@ -50,20 +53,18 @@ public class FilmController {
         log.info("Фильм с ID {} был удален", filmId);
     }
 
-    @PutMapping("/{filmId}/like/{userId}")
+    @PutMapping(value = "/{filmId}/like/{userId}")
     public void addLike(@PathVariable int filmId, @PathVariable int userId) {
-        filmService.addLike(filmId, userId);
-        log.info("Пользователь с ID {} поставил лайк фильму с ID {}", userId, filmId);
+        likeService.addLike(filmId, userId);
     }
 
-    @DeleteMapping("/{filmId}/like/{userId}")
-    public void removeLike(@PathVariable int filmId, @PathVariable int userId) {
-        filmService.removeLike(filmId, userId);
-        log.info("Пользователь с ID {} удалил лайк с фильма с ID {}", userId, filmId);
+    @DeleteMapping(value = "/{filmId}/like/{userId}")
+    public void deleteLike(@PathVariable int filmId, @PathVariable int userId) {
+        likeService.deleteLike(filmId, userId);
     }
 
     @GetMapping("/popular")
-    public List<Film> getMostPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        return filmService.getMostPopularFilms(count);
+    public List<Film> getMostPopularFilms(@RequestParam(name = "count", defaultValue = "10") int count) {
+        return likeService.getPopular(count);
     }
 }

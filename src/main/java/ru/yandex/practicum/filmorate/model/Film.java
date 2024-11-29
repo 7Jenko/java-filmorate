@@ -29,20 +29,6 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительным числом.")
     private Long duration;
 
-    @Builder.Default
-    private Set<Integer> likes = new HashSet<>();
-
-    private int likesCount;
-
-    public Film(int id, String name, String description, LocalDate releaseDate, Long duration) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.releaseDate = releaseDate;
-        this.duration = duration;
-        this.likes = new HashSet<>();
-    }
-
     @AssertTrue(message = "Дата релиза не может быть раньше 28 декабря 1895 года.")
     private boolean isRightReleaseDate() {
         return this.releaseDate.isAfter(MIN_DATE_RELEASE);

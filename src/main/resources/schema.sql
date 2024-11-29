@@ -40,8 +40,8 @@ CREATE TABLE IF NOT EXISTS film_genres (
 );
 
 CREATE TABLE IF NOT EXISTS likes (
-    film_id INT NOT NULL REFERENCES films (film_id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    user_id INT NOT NULL REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE CASCADE
+    film_id INT NOT NULL REFERENCES films (film_id),
+    user_id INT NOT NULL REFERENCES users (user_id)
 );
 
 ALTER TABLE likes ADD CONSTRAINT unique_like UNIQUE (user_id, film_id);

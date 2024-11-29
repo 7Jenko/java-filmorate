@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class RatingMpaDbStorage {
         if (srs.next()) {
             return new RatingMpa(ratingId, srs.getString("rating_name"));
         }
-        return null;
+        throw new NotFoundException("Рейтинг не найден: id = " + ratingId);
     }
 
     public List<RatingMpa> getRatingsMpa() {
