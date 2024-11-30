@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.LikeDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
@@ -15,17 +17,21 @@ import java.util.*;
 public class FilmService {
 
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final LikeDbStorage likeDbStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage, LikeDbStorage likeDbStorage) {
         this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
+        this.likeDbStorage = likeDbStorage;
     }
 
     public Film addFilm(Film film) {
         log.debug("Добавление фильма: {}", film);
         return filmStorage.createFilm(film);
+    }
+
+    public Collection<Film> getTopFilms(Integer count) {
+        return filmStorage.getMostPopularFilms(count);
     }
 
     public Film updateFilm(Film film) {
@@ -54,53 +60,15 @@ public class FilmService {
         return filmStorage.getAllFilms();
     }
 
-//    public void addLike(int filmId, int userId) {
-//        log.debug("Пользователь с ID {} ставит лайк фильму с ID {}", userId, filmId);
-//
-//        Film film = filmStorage.getFilmById(filmId);
-//        if (film == null) {
-//            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
-//        }
-//
-//        User user = userStorage.getUserById(userId);
-//        if (user == null) {
-//            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
-//        }
-//
-//        log.debug("Текущее количество лайков для фильма с ID {}: {}", filmId, film.getLikes().size());
-//
-//        if (!film.getLikes().contains(userId)) {
-//            film.getLikes().add(userId);
-//            film.setLikesCount(film.getLikes().size()); // Обновляем количество лайков
-//
-//            filmStorage.updateFilm(film);
-//
-//            log.debug("Лайк добавлен. Новое количество лайков для фильма с ID {}: {}", filmId, film.getLikes().size());
-//        } else {
-//            log.info("Пользователь с ID {} уже ставил лайк фильму с ID {}", userId, filmId);
-//        }
-//
-//        log.info("Лайк добавлен: Пользователь {} -> Фильм {}", userId, filmId);
-//    }
-//
-//    public void removeLike(int filmId, int userId) {
-//        Film film = filmStorage.getFilmById(filmId);
-//        if (film == null) {
-//            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
-//        }
-//
-//        User user = userStorage.getUserById(userId);
-//        if (user == null) {
-//            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
-//        }
-//
-//        film.getLikes().remove(userId);
-//    }
-//
-//    public List<Film> getMostPopularFilms(int count) {
-//        return filmStorage.getAllFilms().stream()
-//                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
-//                .limit(count)
-//                .collect(Collectors.toList());
-//    }
+    public void addLike(int filmId, int userId) {
+        filmStorage.getFilmById(filmId);
+        likeDbStorage.addLike(filmId, userId);
+        log.info("User {} liked film {}", userId, filmId);
+    }
+
+    public void deleteLike(int filmId, int userId) {
+        filmStorage.getFilmById(filmId);
+        likeDbStorage.deleteLike(filmId, userId);
+        log.info("Пользователь {} отменил лайк фильма {}", userId, filmId);
+    }
 }
