@@ -39,25 +39,23 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    @PutMapping("/{userId}/friends/{friendId}")
-    public void addFriend(@PathVariable int userId, @PathVariable int friendId) {
-        userService.addFriend(userId, friendId);
-        log.info("Пользователь с ID {} добавил в друзья пользователя с ID {}", userId, friendId);
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable Integer id, @PathVariable Integer friendId) {
+        userService.addFriend(id, friendId);
     }
 
-    @DeleteMapping("/{userId}/friends/{friendId}")
-    public void removeFriend(@PathVariable int userId, @PathVariable int friendId) {
-        userService.removeFriend(userId, friendId);
-        log.info("Пользователь с ID {} удалил из друзей пользователя с ID {}", userId, friendId);
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable Integer id, @PathVariable Integer friendId) {
+        userService.removeFriend(id, friendId);
     }
 
-    @GetMapping("/{userId}/friends/common/{otherId}")
-    public List<User> getCommonFriends(@PathVariable int userId, @PathVariable int otherId) {
-        return userService.getCommonFriends(userId, otherId);
+    @GetMapping("/{id}/friends")
+    public List<User> getAllFriends(@PathVariable Integer id) {
+        return userService.getAllFriends(id);
     }
 
-    @GetMapping("/{userId}/friends")
-    public List<User> getFriends(@PathVariable int userId) {
-        return userService.getFriends(userId);
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable Integer id, @PathVariable Integer otherId) {
+        return userService.getCommonFriends(id, otherId);
     }
 }
