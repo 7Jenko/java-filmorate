@@ -49,10 +49,14 @@ public class FilmService {
     }
 
     public void removeFilm(int filmId) {
+        log.debug("Попытка удалить фильм с ID {}", filmId);
         if (filmStorage.getFilmById(filmId) == null) {
+            log.warn("Фильм с ID {} не найден", filmId);
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }
-        filmStorage.removeFilm(filmId);
+        log.trace("Удаление фильма ID {}", filmId);
+        filmStorage.deleteById(filmId);
+        log.info("Успешно удалён фильм с ID {}", filmId);
     }
 
     public List<Film> getAllFilms() {

@@ -13,7 +13,7 @@ public interface FilmStorage {
 
     List<Film> getAllFilms();
 
-    void removeFilm(int id);
+    void deleteById(int filmId);
 
     List<Film> getMostPopularFilms(int count);
 }

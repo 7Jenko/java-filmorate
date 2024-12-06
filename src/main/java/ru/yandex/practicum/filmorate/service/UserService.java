@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -62,5 +63,16 @@ public class UserService {
     private void checkUser(Integer userId, Integer friendId) {
         userStorage.getUserById(userId);
         userStorage.getUserById(friendId);
+    }
+
+    public void deleteUserById(int userId) {
+        log.debug("Попытка удалить пользователя с ID {}", userId);
+        if (userStorage.getUserById(userId) == null) {
+            log.warn("Пользователь с ID {} не найден", userId);
+            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+        }
+        log.trace("Удаление пользователя ID {}", userId);
+        userStorage.deleteById(userId);
+        log.info("Успешно удалён пользователь с ID {}", userId);
     }
 }
