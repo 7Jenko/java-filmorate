@@ -115,6 +115,7 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(deleteFilmQuery, filmId);
         log.info("Успешно удалён фильм с ID {}", filmId);
     }
+
     @Override
     public Film getFilmById(int filmId) {
         String sqlQuery = "SELECT * FROM films "
