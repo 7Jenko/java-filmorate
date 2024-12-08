@@ -194,6 +194,57 @@ public class FilmDbStorage implements FilmStorage {
         }, count);
     }
 
+    public List<Film> searchFilms(String query, ArrayList<String> by) {
+
+
+        String searchParameters = getSearchParameters(by);
+
+        String sqlQuery = "SELECT films.film_id, films.film_name, films.description, films.duration, "
+                + "films.release_date, films.rating_id, rating_mpa.rating_name "
+                + "FROM films "
+                + "LEFT JOIN likes ON likes.film_id = films.film_id "
+                + "JOIN rating_mpa ON films.rating_id = rating_mpa.rating_id "
+                + searchParameters
+                + "GROUP BY films.film_id "
+                + "ORDER BY COUNT(likes.film_id) DESC";
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
+            int filmId = rs.getInt("film_id");
+            String name = rs.getString("film_name");
+            String description = rs.getString("description");
+            Long duration = rs.getLong("duration");
+
+            LocalDate releaseDate = rs.getTimestamp("release_date") != null
+                    ? rs.getTimestamp("release_date").toLocalDateTime().toLocalDate()
+                    : null;
+
+            int mpaId = rs.getInt("rating_id");
+            String mpaName = rs.getString("rating_name");
+            RatingMpa mpa = new RatingMpa(mpaId, mpaName);
+
+            Set<Genre> genres = getGenres(filmId); // Получаем жанры для каждого фильма
+
+            return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres);
+        }, query);
+    }
+
+    private static String getSearchParameters(ArrayList<String> by) {
+        String searchParameters;
+
+        if(by.contains("title") && by.contains("director")) {
+            //Ищем и по режиссёру и по названию
+            searchParameters = "WHERE LOWER(director) LIKE LOWER(CONCAT('%', ?, '%')) "
+                     + " OR LOWER(films.film_name) LIKE LOWER(CONCAT('%', ?, '%'))";
+        } else if(by.contains("director")) {
+            //Ищем и по режиссёру
+            searchParameters = "WHERE LOWER(director) LIKE LOWER(CONCAT('%', ?, '%')) ";
+        } else {
+            //По названию фильма
+            searchParameters = "WHERE LOWER(films.film_name) LIKE LOWER(CONCAT('%', ?, '%')) ";
+        }
+        return searchParameters;
+    }
+
     private List<Film> addGenreForList(List<Film> films) {
         Map<Integer, Film> filmsTable = films.stream().collect(Collectors.toMap(Film::getId, film -> film));
         String inSql = String.join(", ", Collections.nCopies(filmsTable.size(), "?"));

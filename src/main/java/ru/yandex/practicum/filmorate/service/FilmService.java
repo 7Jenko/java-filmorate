@@ -70,4 +70,8 @@ public class FilmService {
         likeDbStorage.deleteLike(filmId, userId);
         log.info("Пользователь {} отменил лайк фильма {}", userId, filmId);
     }
+
+    public List<Film> searchFilms(String query, ArrayList<String> by) {
+        return filmStorage.searchFilms(query, by);
+    }
 }
