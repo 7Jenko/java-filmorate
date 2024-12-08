@@ -30,9 +30,11 @@ import java.util.stream.Collectors;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final FilmRowMapper mapper;
 
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, FilmRowMapper mapper) {
         this.jdbcTemplate = jdbcTemplate;
+        this.mapper = mapper;
     }
 
     @Override
@@ -42,7 +44,6 @@ public class FilmDbStorage implements FilmStorage {
                 + "FROM films "
                 + "JOIN rating_mpa ON films.rating_id = rating_mpa.rating_id";
 
-        // Выполняем запрос и собираем фильмы
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
             int filmId = rs.getInt("film_id");
             String name = rs.getString("film_name");
@@ -101,6 +102,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public void removeFilm(int filmId) {
         String sqlQuery = "DELETE FROM films WHERE film_id = ?";
+        jdbcTemplate.update(sqlQuery, filmId);
     }
 
     @Override
@@ -272,5 +274,41 @@ public class FilmDbStorage implements FilmStorage {
                 .mpa(mpa)
                 .genres(genres)
                 .build();
+    }
+
+    public List<Film> getDirectorFilmSortedByLike(Long directorId) {
+        String getDirectorFilmSortedByLikeQuery = "SELECT f.*, fl.likes_count, mr.id AS mpa_id, mr.name AS mpa_name\n" +
+                "FROM films f\n" +
+                "LEFT JOIN (\n" +
+                "    SELECT film_id, COUNT(user_id) AS likes_count\n" +
+                "    FROM film_likes\n" +
+                "    GROUP BY film_id\n" +
+                ") fl ON fl.film_id = f.id\n" +
+                "LEFT JOIN mpa_ratings mr ON f.mpa_id = mr.id\n" +
+                "WHERE f.id IN (\n" +
+                "    SELECT film_id\n" +
+                "    FROM film_directors fd \n" +
+                "    WHERE fd.director_id = ?\n" +
+                ")\n" +
+                "ORDER BY fl.likes_count DESC";
+
+        return jdbcTemplate.query(getDirectorFilmSortedByLikeQuery, mapper, directorId);
+    }
+
+
+    public List<Film> getDirectorFilmSortedByYear(Long directorId) {
+        String getDirectorFilmSortedByYearQuery = "SELECT f.*,\n" +
+                "EXTRACT(YEAR FROM CAST(f.RELEASE_DATE AS DATE)) AS release_year,\n" +
+                "mr.ID AS mpa_id, mr.name AS mpa_name\n" +
+                "FROM FILMS f\n" +
+                "LEFT JOIN mpa_ratings mr ON f.mpa_id = mr.id\n" +
+                "WHERE f.ID IN (\n" +
+                "\tSELECT film_id\n" +
+                "\tFROM FILM_DIRECTORS fd \n" +
+                "\tWHERE fd.director_id = ?\n" +
+                ")\n" +
+                "ORDER BY release_year ASC";
+
+        return jdbcTemplate.query(getDirectorFilmSortedByYearQuery, mapper, directorId);
     }
 }

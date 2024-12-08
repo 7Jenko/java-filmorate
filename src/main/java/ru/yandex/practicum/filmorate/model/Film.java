@@ -35,10 +35,15 @@ public class Film {
     }
 
     @NotNull(message = "Жанры не могут быть пустыми.")
+    @Builder.Default
     private Set<Genre> genres = new HashSet<>();
 
     @NotNull(message = "Рейтинг MPA не может быть пустым.")
     private RatingMpa mpa;
+
+    @NotNull(message = "Режиссеры не могут быть пустыми.")
+    @Builder.Default
+    private Set<Director> directors = new HashSet<>();
 
     public void addGenre(Genre genre) {
         genres.add(genre);
@@ -51,6 +56,4 @@ public class Film {
     public void removeGenre(Genre genre) {
         genres.remove(genre);
     }
-
-
 }
