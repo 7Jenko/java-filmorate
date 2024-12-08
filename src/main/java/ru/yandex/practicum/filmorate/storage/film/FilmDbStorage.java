@@ -42,7 +42,6 @@ public class FilmDbStorage implements FilmStorage {
                 + "FROM films "
                 + "JOIN rating_mpa ON films.rating_id = rating_mpa.rating_id";
 
-        // Выполняем запрос и собираем фильмы
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
             int filmId = rs.getInt("film_id");
             String name = rs.getString("film_name");
@@ -188,7 +187,7 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId); // Получаем жанры для каждого фильма
+            Set<Genre> genres = getGenres(filmId);
 
             return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres);
         }, count);
