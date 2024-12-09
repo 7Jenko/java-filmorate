@@ -22,7 +22,7 @@ public class Film {
     @Size(max = 200, message = "Максимальная длина описания — 200 символов.")
     private String description;
 
-    @PastOrPresent(message = "Дата релиза не может быть раньше 28 декабря 1895 года.")
+    @NotNull(message = "Дата не может быть пустой")
     private LocalDate releaseDate;
 
     @NotNull(message = "Продолжительность фильма должна быть положительным числом.")
@@ -31,7 +31,7 @@ public class Film {
 
     @AssertTrue(message = "Дата релиза не может быть раньше 28 декабря 1895 года.")
     private boolean isRightReleaseDate() {
-        return this.releaseDate.isAfter(MIN_DATE_RELEASE);
+        return releaseDate != null && !releaseDate.isBefore(MIN_DATE_RELEASE);
     }
 
     @NotNull(message = "Жанры не могут быть пустыми.")

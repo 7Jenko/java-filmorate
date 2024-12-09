@@ -84,7 +84,7 @@ public class FilmDbStorage implements FilmStorage {
         film.setId((Integer) keys.get("film_id"));
         addGenre((Integer) keys.get("film_id"), film.getGenres());
 
-        directorStorage.saveDirectors(film);  //TODO: мб в сетоде saveDirectors какие-то проблемы, дебажить нужно
+        directorStorage.saveDirectors(film);
 
         return film;
     }
@@ -105,8 +105,9 @@ public class FilmDbStorage implements FilmStorage {
         int filmId = film.getId();
         film.setGenres(getGenres(filmId));
         directorStorage.saveDirectors(film);
+        film.setDirectors(directorStorage.getDirectorsByFilmId(filmId));
 
-        return getFilmById(filmId);
+        return film;
     }
 
     @Override
