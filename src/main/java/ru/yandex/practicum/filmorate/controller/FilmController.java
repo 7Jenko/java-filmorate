@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -69,22 +68,10 @@ public class FilmController {
         filmService.deleteLike(id, userId);
     }
 
-    @GetMapping("/director/{id}")
-    public ResponseEntity<List<Film>> getFilmsByDirectorId(
-            @PathVariable("id") Long directorId,
-            @RequestParam(value = "sortBy", required = false) String sortBy) {
-        try {
-            List<Film> films = filmService.getFilmsByDirectorSorted(directorId, sortBy);
-            return ResponseEntity.ok(films);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
     @GetMapping("/director/{directorId}")
     public List<Film> getFilmsByDirector(
             @PathVariable Long directorId,
-            @RequestParam(defaultValue = "likes") String sortBy) {
+            @RequestParam String sortBy) {
         return filmService.getFilmsByDirectorSorted(directorId, sortBy);
     }
 }

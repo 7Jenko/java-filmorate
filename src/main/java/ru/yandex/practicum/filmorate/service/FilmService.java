@@ -90,9 +90,9 @@ public class FilmService {
 
     public List<Film> getFilmsByDirectorSorted(Long directorId, String sortBy) {
         if ("year".equalsIgnoreCase(sortBy)) {
-            return getDirectorFilmSortedByYear(directorId);
+            return filmStorage.getDirectorFilmSortedByYear(directorId);
         } else if ("likes".equalsIgnoreCase(sortBy)) {
-            return getDirectorFilmSortedByLike(directorId);
+            return filmStorage.getDirectorFilmSortedByLike(directorId);
         } else {
             throw new IllegalArgumentException("Invalid sortBy parameter");
         }
@@ -126,40 +126,5 @@ public class FilmService {
     private void setAdditionalFieldsForFilms(List<Film> films) {
         setGenresForFilms(films);
         setDirectorsForFilms(films);
-    }
-
-    private List<Film> getDirectorFilmSortedByLike(Long directorId) {
-        String getDirectorFilmSortedByLikeQuery = "SELECT f.*, fl.likes_count, mr.id AS mpa_id, mr.name AS mpa_name " +
-                "FROM films f " +
-                "LEFT JOIN ( " +
-                "    SELECT film_id, COUNT(user_id) AS likes_count " +
-                "    FROM film_likes " +
-                "    GROUP BY film_id " +
-                ") fl ON fl.film_id = f.id " +
-                "LEFT JOIN mpa_ratings mr ON f.mpa_id = mr.id " +
-                "WHERE f.id IN ( " +
-                "    SELECT film_id " +
-                "    FROM film_directors fd " +
-                "    WHERE fd.director_id = ? " +
-                ") " +
-                "ORDER BY fl.likes_count DESC";
-
-        return jdbcTemplate.query(getDirectorFilmSortedByLikeQuery, mapper, directorId);
-    }
-
-    private List<Film> getDirectorFilmSortedByYear(Long directorId) {
-        String getDirectorFilmSortedByYearQuery = "SELECT f.*, " +
-                "EXTRACT(YEAR FROM CAST(f.RELEASE_DATE AS DATE)) AS release_year, " +
-                "mr.ID AS mpa_id, mr.name AS mpa_name " +
-                "FROM FILMS f " +
-                "LEFT JOIN mpa_ratings mr ON f.mpa_id = mr.id " +
-                "WHERE f.ID IN ( " +
-                "    SELECT film_id " +
-                "    FROM FILM_DIRECTORS fd " +
-                "    WHERE fd.director_id = ? " +
-                ") " +
-                "ORDER BY release_year ASC";
-
-        return jdbcTemplate.query(getDirectorFilmSortedByYearQuery, mapper, directorId);
     }
 }

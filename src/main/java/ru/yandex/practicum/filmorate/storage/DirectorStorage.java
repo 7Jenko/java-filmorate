@@ -90,4 +90,21 @@ public class DirectorStorage {
         jdbc.update(deleteSql, film.getId());
         saveDirectors(film);
     }
+
+    public Set<Director> getDirectorsByFilmId(int filmId) {
+        Set<Director> directors = new HashSet<>();
+        String sqlQuery = "SELECT d.id, d.name " +
+                "FROM directors d " +
+                "JOIN film_directors fd ON d.id = fd.director_id " +
+                "WHERE fd.film_id = ?";
+
+        jdbc.query(sqlQuery, new Object[]{filmId}, rs -> {
+            Director director = new Director();
+            director.setId(rs.getLong("id"));
+            director.setName(rs.getString("name"));
+            directors.add(director);
+        });
+
+        return directors;
+    }
 }

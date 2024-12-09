@@ -16,4 +16,8 @@ public interface FilmStorage {
     void removeFilm(int id);
 
     List<Film> getMostPopularFilms(int count);
+
+    List<Film> getDirectorFilmSortedByLike(Long directorId);
+
+    List<Film> getDirectorFilmSortedByYear(Long directorId);
 }
