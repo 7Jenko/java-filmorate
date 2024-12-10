@@ -65,7 +65,7 @@ public class UserService {
         userStorage.getUserById(friendId);
     }
 
-    public void deleteUserById(int userId) {
+    public void deleteById(int userId) {
         log.debug("Попытка удалить пользователя с ID {}", userId);
         if (userStorage.getUserById(userId) == null) {
             log.warn("Пользователь с ID {} не найден", userId);
