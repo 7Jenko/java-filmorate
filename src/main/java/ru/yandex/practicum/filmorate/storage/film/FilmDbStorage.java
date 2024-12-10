@@ -177,15 +177,24 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getMostPopularFilms(int count) {
-        String sqlQuery = "SELECT films.film_id, films.film_name, films.description, films.duration, "
-                + "films.release_date, films.rating_id, rating_mpa.rating_name "
-                + "FROM films "
-                + "LEFT JOIN likes ON likes.film_id = films.film_id "
-                + "JOIN rating_mpa ON films.rating_id = rating_mpa.rating_id "
-                + "GROUP BY films.film_id "
-                + "ORDER BY COUNT(likes.film_id) DESC "
-                + "LIMIT ?";
+    public List<Film> getMostPopularFilms(Integer count, Integer genreId, Integer year) {
+        String sqlQuery = "SELECT films.film_id, films.film_name, films.description, films.duration, " +
+                "films.release_date, films.rating_id, rating_mpa.rating_name " +
+                "FROM films " +
+                "LEFT JOIN likes ON likes.film_id = films.film_id " +
+                "JOIN rating_mpa ON films.rating_id = rating_mpa.rating_id " +
+                "WHERE " +
+                "    (? IS NULL OR films.film_id IN ( " +
+                "        SELECT film_genres.film_id " +
+                "        FROM film_genres " +
+                "        WHERE film_genres.genre_id = ? " +
+                "    )) " +
+                "AND " +
+                "    (? IS NULL OR EXTRACT(YEAR FROM films.release_date) = ?) " +
+                "GROUP BY films.film_id, films.film_name, films.description, films.duration, " +
+                "films.release_date, films.rating_id, rating_mpa.rating_name " +
+                "ORDER BY COUNT(likes.film_id) DESC " +
+                "LIMIT ?;";
 
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
             int filmId = rs.getInt("film_id");
@@ -201,10 +210,10 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId); // Получаем жанры для каждого фильма
+            Set<Genre> genres = getGenres(filmId);
 
             return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres);
-        }, count);
+        }, genreId, genreId, year, year, count);
     }
 
     private List<Film> addGenreForList(List<Film> films) {

@@ -46,8 +46,9 @@ public class FilmService {
         return filmStorage.createFilm(film);
     }
 
-    public Collection<Film> getTopFilms(Integer count) {
-        return filmStorage.getMostPopularFilms(count);
+    public Collection<Film> getTopFilms(Integer count, Integer genreId, Integer year) {
+        log.info("Ищем список популярных фильмов");
+        return filmStorage.getMostPopularFilms(count, genreId, year);
     }
 
     public Film updateFilm(Film film) {
