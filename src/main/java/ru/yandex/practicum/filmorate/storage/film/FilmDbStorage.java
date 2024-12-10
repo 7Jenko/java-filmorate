@@ -11,7 +11,7 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
-import ru.yandex.practicum.filmorate.storage.DirectorStorage;
+import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -326,7 +326,7 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId); // Получаем жанры для каждого фильма
+            Set<Genre> genres = getGenres(filmId);
 
             Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
 
