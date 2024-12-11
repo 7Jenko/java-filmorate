@@ -20,4 +20,6 @@ public interface FilmStorage {
     List<Film> getDirectorFilmSortedByLike(Long directorId);
 
     List<Film> getDirectorFilmSortedByYear(Long directorId);
+
+    List<Film> getMostPopularFilms(int count);
 }

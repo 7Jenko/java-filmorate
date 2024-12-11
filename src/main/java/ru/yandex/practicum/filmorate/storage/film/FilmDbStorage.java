@@ -117,6 +117,21 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getMostPopularFilms(Integer count, Integer genreId, Integer year) {
+        return List.of();
+    }
+
+    @Override
+    public List<Film> getDirectorFilmSortedByLike(Long directorId) {
+        return List.of();
+    }
+
+    @Override
+    public List<Film> getDirectorFilmSortedByYear(Long directorId) {
+        return List.of();
+    }
+
+    @Override
     public Film getFilmById(int filmId) {
         String sqlQuery = "SELECT * FROM films "
                 + "JOIN rating_mpa ON films.rating_id = rating_mpa.rating_id "
