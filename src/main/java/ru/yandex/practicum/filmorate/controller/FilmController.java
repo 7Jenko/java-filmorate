@@ -85,4 +85,13 @@ public class FilmController {
     public Collection<Film> searchFilms(@RequestParam String query, @RequestParam ArrayList<String> by) {
         return filmService.searchFilms(query, by);
     }
+
+    @GetMapping("/common")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Film> getMostPopularFilms(
+            @RequestParam(name = "userId") Integer userId,
+            @RequestParam(name = "friendId") Integer friendId
+    ) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
 }
