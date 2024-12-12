@@ -130,6 +130,19 @@ public class FilmService {
     }
 
     public List<Film> searchFilms(String query, ArrayList<String> by) {
-        return filmStorage.searchFilms(query, by);
+        List<Film> films;
+
+        if(by.contains("title") && by.contains("director")) {
+            //Ищем и по режиссёру и по названию
+            films = filmStorage.searchFilmsByDirectorTitle(query);
+        } else if(by.contains("director")) {
+            //Ищем по режиссёру
+            films = filmStorage.searchFilmsByDirector(query);
+        } else {
+            //По названию фильма
+            films = filmDbStorage.searchFilmsByTitle(query);
+        }
+
+        return films;
     }
 }

@@ -216,17 +216,14 @@ public class FilmDbStorage implements FilmStorage {
         }, genreId, genreId, year, year, count);
     }
 
-    public List<Film> searchFilms(String query, ArrayList<String> by) {
-
-
-        String searchParameters = getSearchParameters(by);
+    public List<Film> searchFilmsByTitle(String query) {
 
         String sqlQuery = "SELECT films.film_id, films.film_name, films.description, films.duration, "
                 + "films.release_date, films.rating_id, rating_mpa.rating_name "
                 + "FROM films "
                 + "LEFT JOIN likes ON likes.film_id = films.film_id "
                 + "JOIN rating_mpa ON films.rating_id = rating_mpa.rating_id "
-                + searchParameters
+                + "WHERE LOWER(films.film_name) LIKE LOWER(CONCAT('%', ?, '%')) "
                 + "GROUP BY films.film_id "
                 + "ORDER BY COUNT(likes.film_id) DESC";
 
@@ -245,26 +242,81 @@ public class FilmDbStorage implements FilmStorage {
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
             Set<Genre> genres = getGenres(filmId); // Получаем жанры для каждого фильма
+            Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId); // Получаем режиссеров для каждого фильма
 
-            return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres);
+            return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres, directors);
         }, query);
     }
 
-    private static String getSearchParameters(ArrayList<String> by) {
-        String searchParameters;
+    public List<Film> searchFilmsByDirector(String query) {
 
-        if(by.contains("title") && by.contains("director")) {
-            //Ищем и по режиссёру и по названию
-            searchParameters = "WHERE LOWER(director) LIKE LOWER(CONCAT('%', ?, '%')) "
-                     + " OR LOWER(films.film_name) LIKE LOWER(CONCAT('%', ?, '%'))";
-        } else if(by.contains("director")) {
-            //Ищем и по режиссёру
-            searchParameters = "WHERE LOWER(director) LIKE LOWER(CONCAT('%', ?, '%')) ";
-        } else {
-            //По названию фильма
-            searchParameters = "WHERE LOWER(films.film_name) LIKE LOWER(CONCAT('%', ?, '%')) ";
-        }
-        return searchParameters;
+        String sqlQuery = "SELECT films.film_id, films.film_name, films.description, films.duration, "
+                + "films.release_date, films.rating_id, rating_mpa.rating_name "
+                + "FROM films "
+                + "LEFT JOIN likes ON likes.film_id = films.film_id "
+                + "JOIN rating_mpa ON films.rating_id = rating_mpa.rating_id "
+                + "JOIN film_directors ON films.film_id = film_directors.film_id "
+                + "JOIN directors ON film_directors.director_id = directors.id "
+                + "WHERE LOWER(directors.name) LIKE LOWER(CONCAT('%', ?, '%')) "
+                + "GROUP BY films.film_id, rating_mpa.rating_name "
+                + "ORDER BY COUNT(likes.film_id) DESC";
+
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
+            int filmId = rs.getInt("film_id");
+            String name = rs.getString("film_name");
+            String description = rs.getString("description");
+            Long duration = rs.getLong("duration");
+
+            LocalDate releaseDate = rs.getTimestamp("release_date") != null
+                    ? rs.getTimestamp("release_date").toLocalDateTime().toLocalDate()
+                    : null;
+
+            int mpaId = rs.getInt("rating_id");
+            String mpaName = rs.getString("rating_name");
+            RatingMpa mpa = new RatingMpa(mpaId, mpaName);
+
+            Set<Genre> genres = getGenres(filmId); // Получаем жанры для каждого фильма
+            Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId); // Получаем режиссеров для каждого фильма
+
+            return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres, directors);
+        }, query);
+    }
+
+    public List<Film> searchFilmsByDirectorTitle(String query) {
+
+        String sqlQuery = "SELECT films.film_id, films.film_name, films.description, films.duration, "
+                + "films.release_date, films.rating_id, rating_mpa.rating_name "
+                + "FROM films "
+                + "LEFT JOIN likes ON likes.film_id = films.film_id "
+                + "LEFT JOIN rating_mpa ON films.rating_id = rating_mpa.rating_id "
+                + "LEFT JOIN film_directors ON films.film_id = film_directors.film_id "
+                + "LEFT JOIN directors ON film_directors.director_id = directors.id "
+                + "WHERE LOWER(directors.name) LIKE LOWER(CONCAT('%', ?, '%')) "
+                + "OR LOWER(films.film_name) LIKE LOWER(CONCAT('%', ?, '%')) " // Условие для названия фильма
+                + "GROUP BY films.film_id, films.film_name, films.description, films.duration, "
+                + "films.release_date, films.rating_id, rating_mpa.rating_name "
+                + "ORDER BY COUNT(likes.film_id) DESC";
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
+            int filmId = rs.getInt("film_id");
+            String name = rs.getString("film_name");
+            String description = rs.getString("description");
+            Long duration = rs.getLong("duration");
+
+            LocalDate releaseDate = rs.getTimestamp("release_date") != null
+                    ? rs.getTimestamp("release_date").toLocalDateTime().toLocalDate()
+                    : null;
+
+            int mpaId = rs.getInt("rating_id");
+            String mpaName = rs.getString("rating_name");
+            RatingMpa mpa = new RatingMpa(mpaId, mpaName);
+
+            Set<Genre> genres = getGenres(filmId); // Получаем жанры для каждого фильма
+            Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId); // Получаем режиссеров для каждого фильма
+
+            return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres, directors);
+        }, query, query);
     }
 
     private List<Film> addGenreForList(List<Film> films) {
