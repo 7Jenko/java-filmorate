@@ -128,4 +128,21 @@ public class FilmService {
         setGenresForFilms(films);
         setDirectorsForFilms(films);
     }
+
+    public List<Film> searchFilms(String query, ArrayList<String> by) {
+        List<Film> films;
+
+        if (by.contains("title") && by.contains("director")) {
+            //Ищем и по режиссёру и по названию
+            films = filmStorage.searchFilmsByDirectorTitle(query);
+        } else if (by.contains("director")) {
+            //Ищем по режиссёру
+            films = filmStorage.searchFilmsByDirector(query);
+        } else {
+            //По названию фильма
+            films = filmDbStorage.searchFilmsByTitle(query);
+        }
+
+        return films;
+    }
 }
