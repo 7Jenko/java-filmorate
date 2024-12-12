@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
@@ -16,15 +17,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -246,6 +239,46 @@ public class FilmDbStorage implements FilmStorage {
 
             return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres);
         }, genreId, genreId, year, year, count);
+    }
+
+    @Override
+    public Collection<Film> getUserRecommendations(Integer userId) {
+        Set<Film> recommendedFilms = new HashSet<>();
+
+        String similarUsersQuery = "SELECT DISTINCT l2.user_id " +
+                "FROM likes l1 " +
+                "JOIN likes l2 ON l1.film_id = l2.film_id " +
+                "WHERE l1.user_id = ? AND l2.user_id != ?";
+
+        List<Integer> similarUsers = jdbcTemplate.query(similarUsersQuery, new PreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps) throws SQLException {
+                ps.setInt(1, userId);
+                ps.setInt(2, userId);
+            }
+        }, (rs, rowNum) -> rs.getInt("user_id"));
+
+        if (!similarUsers.isEmpty()) {
+            String recommendedFilmsQuery = "SELECT f.film_id, f.film_name, f.description, f.duration, " +
+                    "f.release_date, f.rating_id, r.rating_id AS mpa_id, r.rating_name AS mpa_name " +
+                    "FROM films f " +
+                    "JOIN likes l ON f.film_id = l.film_id " +
+                    "LEFT JOIN rating_mpa r ON f.rating_id = r.rating_id " +
+                    "WHERE l.user_id IN (" + String.join(",",
+                    Collections.nCopies(similarUsers.size(), "?")) + ") " +
+                    "AND f.film_id NOT IN (SELECT film_id FROM likes WHERE user_id = ?)";
+
+            Object[] params = new Object[similarUsers.size() + 1];
+            for (int i = 0; i < similarUsers.size(); i++) {
+                params[i] = similarUsers.get(i);
+            }
+            params[similarUsers.size()] = userId;
+
+            List<Film> films = jdbcTemplate.query(recommendedFilmsQuery, new FilmRowMapper(), params);
+            recommendedFilms.addAll(films);
+        }
+
+        return recommendedFilms;
     }
 
     public List<Film> searchFilmsByTitle(String query) {

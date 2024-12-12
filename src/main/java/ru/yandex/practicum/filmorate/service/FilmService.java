@@ -99,6 +99,10 @@ public class FilmService {
         }
     }
 
+    public Collection<Film> getRecommendations(Integer userId) {
+        return filmStorage.getUserRecommendations(userId);
+    }
+
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
         return filmStorage.getCommonFilms(userId, friendId);
     }
