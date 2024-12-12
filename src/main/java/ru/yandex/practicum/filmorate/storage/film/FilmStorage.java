@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import ru.yandex.practicum.filmorate.model.Film;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public interface FilmStorage {
@@ -21,7 +19,10 @@ public interface FilmStorage {
     List<Film> getDirectorFilmSortedByLike(Long directorId);
 
     List<Film> getDirectorFilmSortedByYear(Long directorId);
+
     List<Film> searchFilmsByTitle(String query);
+
     List<Film> searchFilmsByDirector(String query);
+
     List<Film> searchFilmsByDirectorTitle(String query);
 }
