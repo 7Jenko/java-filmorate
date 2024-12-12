@@ -103,6 +103,10 @@ public class FilmService {
         return filmStorage.getUserRecommendations(userId);
     }
 
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        return filmStorage.getCommonFilms(userId, friendId);
+    }
+
     private void setGenresForFilms(List<Film> films) {
         Map<Long, Set<Genre>> filmGenres = (Map<Long, Set<Genre>>) genreStorage.getAllGenres();
         for (Film film : films) {
@@ -131,5 +135,22 @@ public class FilmService {
     private void setAdditionalFieldsForFilms(List<Film> films) {
         setGenresForFilms(films);
         setDirectorsForFilms(films);
+    }
+
+    public List<Film> searchFilms(String query, ArrayList<String> by) {
+        List<Film> films;
+
+        if (by.contains("title") && by.contains("director")) {
+            //Ищем и по режиссёру и по названию
+            films = filmStorage.searchFilmsByDirectorTitle(query);
+        } else if (by.contains("director")) {
+            //Ищем по режиссёру
+            films = filmStorage.searchFilmsByDirector(query);
+        } else {
+            //По названию фильма
+            films = filmDbStorage.searchFilmsByTitle(query);
+        }
+
+        return films;
     }
 }
