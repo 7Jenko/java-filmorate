@@ -72,6 +72,9 @@ public class FilmService {
             log.warn("Фильм с ID {} не найден", filmId);
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }
+        // Удаляем все связанные записи жанров
+        genreStorage.deleteAllGenresById(filmId);
+
         log.trace("Удаление фильма ID {}", filmId);
         filmStorage.deleteById(filmId);
         log.info("Успешно удалён фильм с ID {}", filmId);
