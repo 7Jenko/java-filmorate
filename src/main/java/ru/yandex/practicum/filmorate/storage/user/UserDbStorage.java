@@ -139,4 +139,9 @@ public class UserDbStorage implements UserStorage {
                 .birthday(birthday)
                 .build();
     }
+
+    public List<Integer> getFriendIdsByUserId(int userId) {
+        String sqlQuery = "SELECT friend_id FROM friends WHERE user_id = ?";
+        return jdbcTemplate.query(sqlQuery, new Object[]{userId}, (rs, rowNum) -> rs.getInt("friend_id"));
+    }
 }

@@ -75,4 +75,13 @@ public class UserService {
         userStorage.deleteById(userId);
         log.info("Успешно удалён пользователь с ID {}", userId);
     }
+
+    public void removeAllFriends(Integer userId) {
+        log.trace("Получение списка друзей для пользователя с ID: {}", userId);
+        List<Integer> friendIds = userStorage.getFriendIdsByUserId(userId);
+
+        for (Integer friendId : friendIds) {
+            removeFriend(userId, friendId);
+        }
+    }
 }

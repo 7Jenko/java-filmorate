@@ -15,4 +15,6 @@ public interface UserStorage extends FriendsStorage {
     List<User> getAllUsers();
 
     void deleteById(int userId);
+
+    List<Integer> getFriendIdsByUserId(int userId);
 }

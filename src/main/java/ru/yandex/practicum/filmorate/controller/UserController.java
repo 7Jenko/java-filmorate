@@ -61,6 +61,10 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     public void removeUser(@PathVariable int userId) {
+        // Сначала удалите все связанные с пользователем друзья
+        userService.removeAllFriends(userId);
+
+        // Теперь можно безопасно удалить пользователя
         userService.deleteById(userId);
     }
 }
