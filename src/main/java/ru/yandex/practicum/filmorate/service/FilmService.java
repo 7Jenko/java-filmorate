@@ -99,6 +99,10 @@ public class FilmService {
         }
     }
 
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        return filmStorage.getCommonFilms(userId, friendId);
+    }
+
     private void setGenresForFilms(List<Film> films) {
         Map<Long, Set<Genre>> filmGenres = (Map<Long, Set<Genre>>) genreStorage.getAllGenres();
         for (Film film : films) {
