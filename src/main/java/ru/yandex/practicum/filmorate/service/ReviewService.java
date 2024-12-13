@@ -6,9 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.Review.RequestUpdateReviewDto;
 import ru.yandex.practicum.filmorate.storage.Review.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -23,6 +21,7 @@ public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+    private final EventService eventService;
 
     public Review createReview(Review review) {
         User user = userStorage.getUserById(Math.toIntExact(review.getUserId()));
@@ -39,6 +38,9 @@ public class ReviewService {
 
         review.setReviewId(id);
         review.setUseful(0L);
+
+        eventService.createEvent(Math.toIntExact(review.getUserId()), EventType.REVIEW, EventOperation.ADD,
+                Math.toIntExact(review.getReviewId()));
 
         return review;
     }
@@ -79,11 +81,17 @@ public class ReviewService {
             review.setIsPositive(reviewDto.getIsPositive());
         }
 
+        eventService.createEvent(Math.toIntExact(review.getUserId()), EventType.REVIEW,
+                EventOperation.UPDATE, Math.toIntExact(review.getReviewId()));
+
         return reviewStorage.updateReview(review);
     }
 
     public void deleteById(Long id) {
+        Review review = findById(id);
         reviewStorage.deleteById(id);
+        eventService.createEvent(Math.toIntExact(review.getUserId()), EventType.REVIEW,
+                EventOperation.REMOVE, Math.toIntExact(review.getReviewId()));
     }
 
     public Review findById(Long id) {
