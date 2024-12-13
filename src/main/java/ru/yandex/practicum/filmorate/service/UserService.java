@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -62,5 +63,31 @@ public class UserService {
     private void checkUser(Integer userId, Integer friendId) {
         userStorage.getUserById(userId);
         userStorage.getUserById(friendId);
+    }
+
+    public void deleteById(int userId) {
+        log.debug("Попытка удалить пользователя с ID {}", userId);
+        if (userStorage.getUserById(userId) == null) {
+            log.warn("Пользователь с ID {} не найден", userId);
+            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+        }
+        log.trace("Удаление пользователя ID {}", userId);
+        userStorage.deleteById(userId);
+        log.info("Успешно удалён пользователь с ID {}", userId);
+    }
+
+    public void removeAllFriends(Integer userId) {
+        log.trace("Получение списка друзей для пользователя с ID: {}", userId);
+        List<Integer> friendIds = userStorage.getFriendIdsByUserId(userId);
+
+        if (friendIds.isEmpty()) {
+            log.info("У пользователя с ID {} нет друзей.", userId);
+            return; // Если друзей нет, выходим из метода
+        }
+
+        for (Integer friendId : friendIds) {
+            removeFriend(userId, friendId);
+        }
+        log.info("Все друзья пользователя с ID {} удалены.", userId);
     }
 }

@@ -4,12 +4,9 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.Collection;
 import java.util.List;
 
 @Slf4j
@@ -18,12 +15,10 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final FilmService filmService;
 
     @Autowired
-    public UserController(UserService userService, FilmService filmService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.filmService = filmService;
     }
 
     @PostMapping
@@ -64,8 +59,12 @@ public class UserController {
         return userService.getCommonFriends(id, otherId);
     }
 
-    @GetMapping("/{id}/recommendations")
-    public Collection<Film> getRecommendations(@PathVariable("id") Integer id) {
-        return filmService.getRecommendations(id);
+    @DeleteMapping("/{userId}")
+    public void removeUser(@PathVariable int userId) {
+        // Сначала удалите все связанные с пользователем друзья
+        userService.removeAllFriends(userId);
+
+        // Теперь можно безопасно удалить пользователя
+        userService.deleteById(userId);
     }
 }

@@ -67,10 +67,17 @@ public class FilmService {
     }
 
     public void removeFilm(int filmId) {
+        log.debug("Попытка удалить фильм с ID {}", filmId);
         if (filmStorage.getFilmById(filmId) == null) {
+            log.warn("Фильм с ID {} не найден", filmId);
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }
-        filmStorage.removeFilm(filmId);
+        // Удаляем все связанные записи жанров
+        genreStorage.deleteAllGenresById(filmId);
+
+        log.trace("Удаление фильма ID {}", filmId);
+        filmStorage.deleteById(filmId);
+        log.info("Успешно удалён фильм с ID {}", filmId);
     }
 
     public List<Film> getAllFilms() {
@@ -97,14 +104,6 @@ public class FilmService {
         } else {
             throw new IllegalArgumentException("Invalid sortBy parameter");
         }
-    }
-
-    public Collection<Film> getRecommendations(Integer userId) {
-        return filmStorage.getUserRecommendations(userId);
-    }
-
-    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
-        return filmStorage.getCommonFilms(userId, friendId);
     }
 
     private void setGenresForFilms(List<Film> films) {
@@ -135,22 +134,5 @@ public class FilmService {
     private void setAdditionalFieldsForFilms(List<Film> films) {
         setGenresForFilms(films);
         setDirectorsForFilms(films);
-    }
-
-    public List<Film> searchFilms(String query, ArrayList<String> by) {
-        List<Film> films;
-
-        if (by.contains("title") && by.contains("director")) {
-            //Ищем и по режиссёру и по названию
-            films = filmStorage.searchFilmsByDirectorTitle(query);
-        } else if (by.contains("director")) {
-            //Ищем по режиссёру
-            films = filmStorage.searchFilmsByDirector(query);
-        } else {
-            //По названию фильма
-            films = filmDbStorage.searchFilmsByTitle(query);
-        }
-
-        return films;
     }
 }

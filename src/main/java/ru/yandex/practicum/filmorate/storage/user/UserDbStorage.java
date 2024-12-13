@@ -61,9 +61,18 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public String delete(int userId) {
-        String sqlQuery = "DELETE FROM users WHERE user_id = " + userId;
-        return sqlQuery;
+    public void deleteById(int userId) {
+        removeAllFriends(userId); // метод для удаления всех связей
+        String sqlQuery = "DELETE FROM users WHERE user_id = ?";
+        int rowsAffected = jdbcTemplate.update(sqlQuery, userId);
+        if (rowsAffected == 0) {
+            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+        }
+    }
+
+    private void removeAllFriends(int userId) {
+        String sqlQuery = "DELETE FROM friends WHERE user_id = ? OR friend_id = ?";
+        jdbcTemplate.update(sqlQuery, userId, userId);
     }
 
     @Override
@@ -135,5 +144,10 @@ public class UserDbStorage implements UserStorage {
                 .email(email)
                 .birthday(birthday)
                 .build();
+    }
+
+    public List<Integer> getFriendIdsByUserId(int userId) {
+        String sqlQuery = "SELECT friend_id FROM friends WHERE user_id = ?";
+        return jdbcTemplate.query(sqlQuery, new Object[]{userId}, (rs, rowNum) -> rs.getInt("friend_id"));
     }
 }
