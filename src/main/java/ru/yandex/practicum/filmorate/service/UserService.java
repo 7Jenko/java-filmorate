@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.EventOperation;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -13,10 +15,12 @@ import java.util.*;
 public class UserService {
 
     private final UserStorage userStorage;
+    private final EventService eventService;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(UserStorage userStorage, EventService eventService) {
         this.userStorage = userStorage;
+        this.eventService = eventService;
     }
 
     public User createUser(User user) {
@@ -37,12 +41,14 @@ public class UserService {
         userStorage.addFriend(userId, friendId);
 
         log.info("Друг успешно добавлен");
+        eventService.createEvent(userId, EventType.FRIEND, EventOperation.ADD, friendId);
     }
 
     public void removeFriend(Integer userId, Integer friendId) {
         checkUser(userId, friendId);
         userStorage.removeFriend(userId, friendId);
         log.info("Друг успешно удален");
+        eventService.createEvent(userId, EventType.FRIEND, EventOperation.REMOVE, friendId);
     }
 
     public List<User> getAllFriends(Integer userId) {

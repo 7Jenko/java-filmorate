@@ -5,9 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmRowMapper;
@@ -29,9 +27,13 @@ public class FilmService {
     private final GenreDbStorage genreStorage;
     public final FilmRowMapper mapper;
     private final JdbcTemplate jdbcTemplate;
+    private final EventService eventService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage, FilmDbStorage filmDbStorage, LikeDbStorage likeDbStorage, DirectorStorage directorStorage, GenreDbStorage genreDbStorage, GenreDbStorage genreStorage, FilmRowMapper mapper, JdbcTemplate jdbcTemplate) {
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage, FilmDbStorage filmDbStorage,
+                       LikeDbStorage likeDbStorage, DirectorStorage directorStorage, GenreDbStorage genreDbStorage,
+                       GenreDbStorage genreStorage, FilmRowMapper mapper, JdbcTemplate jdbcTemplate,
+                       EventService eventService) {
         this.filmDbStorage = filmDbStorage;
         this.filmStorage = filmStorage;
         this.likeDbStorage = likeDbStorage;
@@ -39,6 +41,7 @@ public class FilmService {
         this.genreStorage = genreStorage;
         this.mapper = mapper;
         this.jdbcTemplate = jdbcTemplate;
+        this.eventService = eventService;
     }
 
     public Film addFilm(Film film) {
@@ -81,12 +84,14 @@ public class FilmService {
         filmStorage.getFilmById(filmId);
         likeDbStorage.addLike(filmId, userId);
         log.info("User {} liked film {}", userId, filmId);
+        eventService.createEvent(userId, EventType.LIKE, EventOperation.ADD, filmId);
     }
 
     public void deleteLike(int filmId, int userId) {
         filmStorage.getFilmById(filmId);
         likeDbStorage.deleteLike(filmId, userId);
         log.info("Пользователь {} отменил лайк фильма {}", userId, filmId);
+        eventService.createEvent(userId, EventType.LIKE, EventOperation.REMOVE, filmId);
     }
 
     public List<Film> getFilmsByDirectorSorted(Long directorId, String sortBy) {
