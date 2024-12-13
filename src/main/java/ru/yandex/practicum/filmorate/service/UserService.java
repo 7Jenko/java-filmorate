@@ -47,14 +47,18 @@ public class UserService {
     }
 
     public List<User> getAllFriends(Integer userId) {
-        checkUser(userId, userId);
+        if (!existsById(userId)) {
+            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+        }
         List<User> result = userStorage.getFriends(userId);
         log.info("Друзья пользователя с ID = " + userId + result);
         return result;
     }
 
     public List<User> getCommonFriends(Integer user1Id, Integer user2Id) {
-        checkUser(user1Id, user2Id);
+        if (!existsById(user1Id) || !existsById(user2Id)) {
+            throw new NotFoundException("Один из пользователей не найден");
+        }
         List<User> result = userStorage.getCommonFriends(user1Id, user2Id);
         log.info("Общие друзья пользователя с ID " + " {} и {} {} ", user1Id, user2Id, result);
         return result;
@@ -89,5 +93,9 @@ public class UserService {
             removeFriend(userId, friendId);
         }
         log.info("Все друзья пользователя с ID {} удалены.", userId);
+    }
+
+    public boolean existsById(Integer userId) {
+        return userStorage.getUserById(userId) != null;
     }
 }
