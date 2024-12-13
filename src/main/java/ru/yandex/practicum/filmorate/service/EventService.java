@@ -16,8 +16,8 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class EventService {
-    final private EventStorage eventStorage;
-    final private UserStorage userStorage;
+    private final EventStorage eventStorage;
+    private final UserStorage userStorage;
 
     public List<Event> getFeed(int userId) {
         Optional.ofNullable(userStorage.getUserById(userId))
