@@ -80,8 +80,14 @@ public class UserService {
         log.trace("Получение списка друзей для пользователя с ID: {}", userId);
         List<Integer> friendIds = userStorage.getFriendIdsByUserId(userId);
 
+        if (friendIds.isEmpty()) {
+            log.info("У пользователя с ID {} нет друзей.", userId);
+            return; // Если друзей нет, выходим из метода
+        }
+
         for (Integer friendId : friendIds) {
             removeFriend(userId, friendId);
         }
+        log.info("Все друзья пользователя с ID {} удалены.", userId);
     }
 }

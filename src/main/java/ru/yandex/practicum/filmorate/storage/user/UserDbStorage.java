@@ -62,11 +62,17 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void deleteById(int userId) {
+        removeAllFriends(userId); // метод для удаления всех связей
         String sqlQuery = "DELETE FROM users WHERE user_id = ?";
         int rowsAffected = jdbcTemplate.update(sqlQuery, userId);
         if (rowsAffected == 0) {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден");
         }
+    }
+
+    private void removeAllFriends(int userId) {
+        String sqlQuery = "DELETE FROM friends WHERE user_id = ? OR friend_id = ?";
+        jdbcTemplate.update(sqlQuery, userId, userId);
     }
 
     @Override
