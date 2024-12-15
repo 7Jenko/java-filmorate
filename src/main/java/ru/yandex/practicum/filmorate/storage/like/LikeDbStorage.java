@@ -35,4 +35,9 @@ public class LikeDbStorage implements LikeStorage {
     public List<Film> getPopular(Integer count) {
         return jdbcTemplate.query(GET_MOST_POPULAR_LIKE_QUERY, new FilmRowMapper(), count);
     }
+
+    public void removeLikesByFilmId(int filmId) {
+        String DELETE_ALL_LIKES_QUERY = "DELETE FROM LIKES WHERE film_id = ?";
+        jdbcTemplate.update(DELETE_ALL_LIKES_QUERY, filmId);
+    }
 }

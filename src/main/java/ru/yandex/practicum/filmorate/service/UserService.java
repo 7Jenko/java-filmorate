@@ -65,8 +65,17 @@ public class UserService {
     }
 
     private void checkUser(Integer userId, Integer friendId) {
-        userStorage.getUserById(userId);
-        userStorage.getUserById(friendId);
+        User user = userStorage.getUserById(userId);
+        if (user == null) {
+            log.error("Пользователь с ID {} не найден", userId);
+            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+        }
+
+        User friend = userStorage.getUserById(friendId);
+        if (friend == null) {
+            log.error("Друг с ID {} не найден", friendId);
+            throw new NotFoundException("Друг с ID " + friendId + " не найден");
+        }
     }
 
     public void deleteById(int userId) {
