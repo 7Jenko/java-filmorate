@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class UserService {
     }
 
     public User createUser(User user) {
+        validationUserName(user);
         log.debug("Добавление пользователя: {}", user);
         return userStorage.createUser(user);
     }
@@ -80,6 +82,16 @@ public class UserService {
         userStorage.removeAllFriends(id);
         if (!userStorage.deleteUserById(id)) {
             throw new NotFoundException("Пользователь с id " + id + " не найден");
+        }
+    }
+
+    public static void validationUserName(User user) {
+        if (StringUtils.isBlank(user.getName())) {
+            user.setName(user.getLogin());
+            log.debug(
+                    "В запросе на обновление пользователя с id={} отсутствует поле name, будет использовано поле login",
+                    user.getId()
+            );
         }
     }
 }
