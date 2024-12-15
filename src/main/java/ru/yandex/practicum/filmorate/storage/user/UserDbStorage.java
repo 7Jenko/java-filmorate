@@ -63,6 +63,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public String delete(int userId) {
         String sqlQuery = "DELETE FROM users WHERE user_id = " + userId;
+
         return sqlQuery;
     }
 
