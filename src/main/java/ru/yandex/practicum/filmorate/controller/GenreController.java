@@ -25,4 +25,5 @@ public class GenreController {
     public Genre getGenreById(@PathVariable Integer id) {
         return genreService.getGenreById(id);
     }
+    // проверочный коммент
 }
