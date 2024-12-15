@@ -249,7 +249,9 @@ public class FilmDbStorage implements FilmStorage {
 
             Set<Genre> genres = getGenres(filmId);
 
-            return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres);
+            Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
+
+            return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres, directors);
         }, genreId, genreId, year, year, count);
     }
 
