@@ -86,6 +86,7 @@ public class UserService {
     }
 
     public static void validationUserName(User user) {
+
         if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
             log.debug(
