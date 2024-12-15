@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,14 +37,17 @@ public class ReviewService {
 
         review.setReviewId(id);
         review.setUseful(0L);
-
-        eventService.createEvent(Math.toIntExact(review.getUserId()), EventType.REVIEW, EventOperation.ADD,
-                Math.toIntExact(review.getReviewId()));
+        eventService.createEvent(
+                Math.toIntExact(review.getUserId()),
+                EventType.REVIEW,
+                EventOperation.ADD,
+                Math.toIntExact(review.getReviewId())
+        );
 
         return review;
     }
 
-    public Review updateReview(@Valid RequestUpdateReviewDto reviewDto) {
+    public Review updateReview(RequestUpdateReviewDto reviewDto) {
         Review review = reviewStorage.findById(reviewDto.getReviewId())
                 .orElseThrow(() -> new NotFoundException(
                         "Review with id = %d not found".formatted(reviewDto.getReviewId())
@@ -69,29 +71,29 @@ public class ReviewService {
             review.setContent(reviewDto.getContent());
         }
 
-        if (reviewDto.getUserId() != null) {
-            review.setUserId(reviewDto.getUserId());
-        }
-
-        if (reviewDto.getFilmId() != null) {
-            review.setFilmId(reviewDto.getFilmId());
-        }
-
         if (reviewDto.getIsPositive() != null) {
             review.setIsPositive(reviewDto.getIsPositive());
         }
+        review = reviewStorage.updateReview(review);
 
-        eventService.createEvent(Math.toIntExact(review.getUserId()), EventType.REVIEW,
-                EventOperation.UPDATE, Math.toIntExact(review.getReviewId()));
+        eventService.createEvent(
+                Math.toIntExact(review.getUserId()),
+                EventType.REVIEW,
+                EventOperation.UPDATE,
+                Math.toIntExact(review.getReviewId())
+        );
 
-        return reviewStorage.updateReview(review);
+        return review;
     }
 
     public void deleteById(Long id) {
-        Review review = findById(id);
+        eventService.createEvent(
+                Math.toIntExact(reviewStorage.findById(id).get().getUserId()),
+                EventType.REVIEW,
+                EventOperation.REMOVE,
+                Math.toIntExact(id)
+        );
         reviewStorage.deleteById(id);
-        eventService.createEvent(Math.toIntExact(review.getUserId()), EventType.REVIEW,
-                EventOperation.REMOVE, Math.toIntExact(review.getReviewId()));
     }
 
     public Review findById(Long id) {
@@ -109,40 +111,21 @@ public class ReviewService {
         }
     }
 
-    public void addLike(Long reviewId, Long userId) {
-        addLikeDislike(reviewId, userId, true);
-    }
-
-    public void addDislike(Long reviewId, Long userId) {
-        addLikeDislike(reviewId, userId, false);
-    }
-
-    private void addLikeDislike(Long reviewId, Long userId, boolean isLike) {
-        if (reviewStorage.findById(reviewId).isEmpty()) {
-            throw new NotFoundException("Review with id = %d not found".formatted(reviewId));
-        }
+    public void addLike(Long reviewId, Long userId, boolean isLike) {
+        reviewStorage.findById(reviewId)
+                .orElseThrow(() -> new NotFoundException(
+                        "Review with id = %d not found".formatted(reviewId)
+                ));
 
         User user = userStorage.getUserById(Math.toIntExact(userId));
         if (user == null) {
             throw new NotFoundException("User with id = %d not found".formatted(userId));
         }
 
-        if (isLike) {
-            reviewStorage.addLike(reviewId, userId);
-        } else {
-            reviewStorage.addDislike(reviewId, userId);
-        }
+        reviewStorage.addLike(reviewId, userId, isLike);
     }
 
     public void deleteLike(Long reviewId, Long userId) {
-        deleteLikeDislike(reviewId, userId, true);
-    }
-
-    public void deleteDislike(Long reviewId, Long userId) {
-        deleteLikeDislike(reviewId, userId, false);
-    }
-
-    private void deleteLikeDislike(Long reviewId, Long userId, boolean isLike) {
         if (reviewStorage.findById(reviewId).isEmpty()) {
             throw new NotFoundException("Review with id = %d not found".formatted(reviewId));
         }
@@ -152,10 +135,6 @@ public class ReviewService {
             throw new NotFoundException("User with id = %d not found".formatted(userId));
         }
 
-        if (isLike) {
-            reviewStorage.deleteLike(reviewId, userId);
-        } else {
-            reviewStorage.deleteDislike(reviewId, userId);
-        }
+        reviewStorage.deleteLike(reviewId, userId);
     }
 }
