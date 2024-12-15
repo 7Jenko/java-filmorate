@@ -77,4 +77,14 @@ public class UserController {
     public List<Event> getFeed(@PathVariable int id) {
         return eventService.getFeed(id);
     }
+
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable("id") Integer id) {
+        return userService.getUserById(id);
+    }
+
+    @DeleteMapping("/{userId}")
+    public void deleteUserById(@PathVariable("userId") Integer id) {
+        userService.deleteUserById(id);
+    }
 }
