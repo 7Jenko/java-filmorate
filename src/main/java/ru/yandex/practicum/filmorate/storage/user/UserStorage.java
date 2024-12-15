@@ -15,4 +15,8 @@ public interface UserStorage extends FriendsStorage {
     List<User> getAllUsers();
 
     String delete(int id);
+
+    boolean deleteUserById(Integer id);
+
+    void removeAllFriends(int userId);
 }
