@@ -110,6 +110,18 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public void removeFilmGenres(int filmId) {
+        String sqlQuery = "DELETE FROM film_genres WHERE film_id = ?";
+        jdbcTemplate.update(sqlQuery, filmId);
+    }
+
+    @Override
+    public void removeLikesByFilmId(int filmId) {
+        String sqlQuery = "DELETE FROM likes WHERE film_id = ?";
+        jdbcTemplate.update(sqlQuery, filmId);
+    }
+
+    @Override
     public Film getFilmById(int filmId) {
         String sqlQuery = "SELECT * FROM films "
                 + "JOIN rating_mpa ON films.rating_id = rating_mpa.rating_id "

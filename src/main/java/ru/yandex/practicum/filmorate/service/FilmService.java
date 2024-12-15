@@ -70,6 +70,9 @@ public class FilmService {
     }
 
     public void removeFilm(int filmId) {
+        filmStorage.removeFilmGenres(filmId);
+        filmStorage.removeLikesByFilmId(filmId);
+
         if (filmStorage.getFilmById(filmId) == null) {
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }

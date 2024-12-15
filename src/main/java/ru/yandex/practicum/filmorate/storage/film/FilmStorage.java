@@ -16,6 +16,10 @@ public interface FilmStorage {
 
     void removeFilm(int id);
 
+    void removeFilmGenres(int filmId);
+
+    void removeLikesByFilmId(int filmId);
+
     List<Film> getMostPopularFilms(Integer count, Integer genreId, Integer year);
 
     Collection<Film> getUserRecommendations(Integer userId);
