@@ -139,7 +139,6 @@ public class FilmDbStorage implements FilmStorage {
         if (genres == null || genres.isEmpty()) {
             return;
         }
-
         String sqlQuery = "INSERT INTO film_genres (film_id, genre_id) "
                 + "VALUES (?, ?)";
         List<Genre> genresTable = new ArrayList<>(genres);
