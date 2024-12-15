@@ -28,6 +28,7 @@ public class FilmService {
     public final FilmRowMapper mapper;
     private final JdbcTemplate jdbcTemplate;
     private final EventService eventService;
+    private final UserStorage userStorage;
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage, FilmDbStorage filmDbStorage,
@@ -35,6 +36,7 @@ public class FilmService {
                        GenreDbStorage genreStorage, FilmRowMapper mapper, JdbcTemplate jdbcTemplate,
                        EventService eventService) {
         this.filmDbStorage = filmDbStorage;
+        this.userStorage = userStorage;
         this.filmStorage = filmStorage;
         this.likeDbStorage = likeDbStorage;
         this.directorStorage = directorStorage;
@@ -87,6 +89,12 @@ public class FilmService {
 
     public void addLike(int filmId, int userId) {
         filmStorage.getFilmById(filmId);
+
+        if (userStorage.getUserById(userId) == null) {
+            log.warn("Пользователь с ID {} не найден", userId);
+            return;
+        }
+
         likeDbStorage.addLike(filmId, userId);
         log.info("User {} liked film {}", userId, filmId);
         eventService.createEvent(userId, EventType.LIKE, EventOperation.ADD, filmId);
@@ -94,6 +102,12 @@ public class FilmService {
 
     public void deleteLike(int filmId, int userId) {
         filmStorage.getFilmById(filmId);
+
+        if (userStorage.getUserById(userId) == null) {
+            log.warn("Пользователь с ID {} не найден", userId);
+            return;
+        }
+
         likeDbStorage.deleteLike(filmId, userId);
         log.info("Пользователь {} отменил лайк фильма {}", userId, filmId);
         eventService.createEvent(userId, EventType.LIKE, EventOperation.REMOVE, filmId);
