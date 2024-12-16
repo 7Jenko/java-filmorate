@@ -38,14 +38,6 @@ public class DirectorService {
         throw new NotFoundException("Film not found!");
     }
 
-    private Long generateId() {
-        Long currentId = directorStorage.getAll().stream()
-                .mapToLong(Director::getId)
-                .max()
-                .orElse(0);
-        return ++currentId;
-    }
-
     public void deleteById(Long directorId) {
         log.debug("Checking existence of director with ID {} for deleting", directorId);
         if (directorStorage.getById(directorId).isEmpty()) {
@@ -54,5 +46,13 @@ public class DirectorService {
         }
         log.trace("Deleting director in storage");
         directorStorage.deleteById(directorId);
+    }
+
+    private Long generateId() {
+        Long currentId = directorStorage.getAll().stream()
+                .mapToLong(Director::getId)
+                .max()
+                .orElse(0);
+        return ++currentId;
     }
 }
