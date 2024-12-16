@@ -40,5 +40,4 @@ public class DirectorController {
     public void deleteByID(@PathVariable long id) {
         directorService.deleteById(id);
     }
-    //check
 }
