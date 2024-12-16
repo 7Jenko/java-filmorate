@@ -20,6 +20,7 @@ public class EventService {
     private final UserStorage userStorage;
 
     public List<Event> getFeed(int userId) {
+
         Optional.ofNullable(userStorage.getUserById(userId))
                 .orElseThrow(() -> new NotFoundException("Пользователя с id = " + userId + " не существует"));
         return eventStorage.getFeed(userId);
