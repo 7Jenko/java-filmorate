@@ -141,9 +141,9 @@ public class FilmService {
     }
 
     private void setGenresForFilms(List<Film> films) {
-        Map<Long, Set<Genre>> filmGenres = (Map<Long, Set<Genre>>) genreStorage.getAllGenres();
+        Map<Long, List<Genre>> filmGenres = (Map<Long, List<Genre>>) genreStorage.getAllGenres();
         for (Film film : films) {
-            Set<Genre> genres = filmGenres.getOrDefault(film.getId(), new HashSet<>());
+            List<Genre> genres = filmGenres.getOrDefault(film.getId(), new ArrayList<>());
             film.setGenres(genres);
         }
     }

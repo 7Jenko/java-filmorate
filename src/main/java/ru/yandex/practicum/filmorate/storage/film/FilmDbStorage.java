@@ -55,7 +55,7 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId);
+            List<Genre> genres = getGenres(filmId);
             Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
 
             return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres, directors);
@@ -135,7 +135,7 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-    public void addGenre(int filmId, Set<Genre> genres) {
+    public void addGenre(int filmId, List<Genre> genres) {
         deleteAllGenresById(filmId);
         if (genres == null || genres.isEmpty()) {
             return;
@@ -180,21 +180,20 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId);
+            List<Genre> genres = getGenres(filmId);
             Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
 
             return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres, directors);
         });
     }
 
-    private Set<Genre> getGenres(int filmId) {
-        Comparator<Genre> compId = Comparator.comparing(Genre::getId);
-        Set<Genre> genres = new TreeSet<>(compId);
+    private List<Genre> getGenres(int filmId) {
         String sqlQuery = "SELECT film_genres.genre_id, genres.genre_name FROM film_genres "
                 + "JOIN genres ON genres.genre_id = film_genres.genre_id "
                 + "WHERE film_id = ? ORDER BY genre_id ASC";
-        genres.addAll(jdbcTemplate.query(sqlQuery, this::makeGenre, filmId));
-        return genres;
+        Set<Genre> genreSet = new LinkedHashSet<>(jdbcTemplate.query(sqlQuery, this::makeGenre, filmId));
+
+        return new ArrayList<>(genreSet);
     }
 
     private void deleteAllGenresById(int filmId) {
@@ -248,7 +247,7 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId);
+            List<Genre> genres = getGenres(filmId);
 
             Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
 
@@ -275,13 +274,18 @@ public class FilmDbStorage implements FilmStorage {
 
         if (!similarUsers.isEmpty()) {
             String recommendedFilmsQuery = "SELECT f.film_id, f.film_name, f.description, f.duration, " +
-                    "f.release_date, f.rating_id, r.rating_id AS mpa_id, r.rating_name AS mpa_name " +
+                    "       f.release_date, f.rating_id, r.rating_name AS mpa_name, " +
+                    "       GROUP_CONCAT(DISTINCT g.genre_id ORDER BY g.genre_id) AS genre_ids, " +
+                    "       GROUP_CONCAT(DISTINCT g.genre_name ORDER BY g.genre_id) AS genre_names " +
                     "FROM films f " +
                     "JOIN likes l ON f.film_id = l.film_id " +
                     "LEFT JOIN rating_mpa r ON f.rating_id = r.rating_id " +
-                    "WHERE l.user_id IN (" + String.join(",",
-                    Collections.nCopies(similarUsers.size(), "?")) + ") " +
-                    "AND f.film_id NOT IN (SELECT film_id FROM likes WHERE user_id = ?)";
+                    "LEFT JOIN film_genres fg ON f.film_id = fg.film_id " +
+                    "LEFT JOIN genres g ON fg.genre_id = g.genre_id " +
+                    "WHERE l.user_id IN ("+ String.join(",",
+                    Collections.nCopies(similarUsers.size(), "?")) +") " +
+                    "AND f.film_id NOT IN (SELECT film_id FROM likes WHERE user_id = ?) " +
+                    "GROUP BY f.film_id;";
 
             Object[] params = new Object[similarUsers.size() + 1];
             for (int i = 0; i < similarUsers.size(); i++) {
@@ -289,7 +293,38 @@ public class FilmDbStorage implements FilmStorage {
             }
             params[similarUsers.size()] = userId;
 
-            List<Film> films = jdbcTemplate.query(recommendedFilmsQuery, new FilmRowMapper(), params);
+            List<Film> films = jdbcTemplate.query(recommendedFilmsQuery, (rs, rowNum) -> {
+                int filmId = rs.getInt("film_id");
+                String name = rs.getString("film_name");
+                String description = rs.getString("description");
+                Long duration = rs.getLong("duration");
+                LocalDate releaseDate = rs.getTimestamp("release_date") != null
+                        ? rs.getTimestamp("release_date").toLocalDateTime().toLocalDate()
+                        : null;
+                int mpaId = rs.getInt("rating_id");
+                String mpaName = rs.getString("mpa_name");
+                RatingMpa mpa = new RatingMpa(mpaId, mpaName);
+
+                String genreIdsStr = rs.getString("genre_ids");
+                String genreNamesStr = rs.getString("genre_names");
+                List<Genre> genres = new ArrayList<>();
+                if (genreIdsStr != null && genreNamesStr != null) {
+                    String[] genreIds = genreIdsStr.split(",");
+                    String[] genreNames = genreNamesStr.split(",");
+                    for (int i = 0; i < genreIds.length; i++) {
+                        genres.add(new Genre(Integer.parseInt(genreIds[i]), genreNames[i]));
+                    }
+                }
+
+                List<Genre> sortedGenres = new ArrayList<>(genres);
+                sortedGenres.sort(Comparator.comparingInt(Genre::getId));
+
+                Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
+
+                return buildFilm(filmId, name, description, duration, releaseDate, mpa, sortedGenres,
+                        directors);
+            }, params);
+
             recommendedFilms.addAll(films);
         }
 
@@ -321,8 +356,8 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId); // Получаем жанры для каждого фильма
-            Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId); // Получаем режиссеров для каждого фильма
+            List<Genre> genres = getGenres(filmId);
+            Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
 
             return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres, directors);
         }, query);
@@ -356,8 +391,8 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId); // Получаем жанры для каждого фильма
-            Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId); // Получаем режиссеров для каждого фильма
+            List<Genre> genres = getGenres(filmId);
+            Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
 
             return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres, directors);
         }, query);
@@ -392,8 +427,8 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId); // Получаем жанры для каждого фильма
-            Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId); // Получаем режиссеров для каждого фильма
+            List<Genre> genres = getGenres(filmId);
+            Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
 
             return buildFilm(filmId, name, description, duration, releaseDate, mpa, genres, directors);
         }, query, query);
@@ -436,7 +471,7 @@ public class FilmDbStorage implements FilmStorage {
         String mpaName = rs.getString("rating_name");
         RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-        Set<Genre> genres = new HashSet<>();
+        List<Genre> genres = new ArrayList<>();
         do {
             int genreId = rs.getInt("genre_id");
             String genreName = rs.getString("genre_name");
@@ -461,7 +496,7 @@ public class FilmDbStorage implements FilmStorage {
         String mpaName = srs.getString("rating_name");
         RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-        Set<Genre> genres = getGenres(filmId);
+        List<Genre> genres = getGenres(filmId);
 
         Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
 
@@ -469,7 +504,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private Film buildFilm(int filmId, String name, String description, Long duration,
-                           LocalDate releaseDate, RatingMpa mpa, Set<Genre> genres) {
+                           LocalDate releaseDate, RatingMpa mpa, List<Genre> genres) {
         return Film.builder()
                 .id(filmId)
                 .name(name)
@@ -482,7 +517,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private Film buildFilm(int filmId, String name, String description, Long duration,
-                           LocalDate releaseDate, RatingMpa mpa, Set<Genre> genres, Set<Director> directors) {
+                           LocalDate releaseDate, RatingMpa mpa, List<Genre> genres, Set<Director> directors) {
         return Film.builder()
                 .id(filmId)
                 .name(name)
@@ -520,7 +555,7 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId);
+            List<Genre> genres = getGenres(filmId);
 
             Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
 
@@ -552,7 +587,7 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = rs.getString("rating_name");
             RatingMpa mpa = new RatingMpa(mpaId, mpaName);
 
-            Set<Genre> genres = getGenres(filmId);
+            List<Genre> genres = getGenres(filmId);
 
             Set<Director> directors = directorStorage.getDirectorsByFilmId(filmId);
 
