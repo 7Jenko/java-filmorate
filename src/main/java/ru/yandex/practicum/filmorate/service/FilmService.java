@@ -113,14 +113,23 @@ public class FilmService {
         eventService.createEvent(userId, EventType.LIKE, EventOperation.REMOVE, filmId);
     }
 
+
     public List<Film> getFilmsByDirectorSorted(Long directorId, String sortBy) {
+        List<Film> films;
+
         if ("year".equalsIgnoreCase(sortBy)) {
-            return filmStorage.getDirectorFilmSortedByYear(directorId);
+            films = filmStorage.getDirectorFilmSortedByYear(directorId);
         } else if ("likes".equalsIgnoreCase(sortBy)) {
-            return filmStorage.getDirectorFilmSortedByLike(directorId);
+            films = filmStorage.getDirectorFilmSortedByLike(directorId);
         } else {
             throw new IllegalArgumentException("Invalid sortBy parameter");
         }
+
+        if (films.isEmpty()) {
+            throw new NotFoundException("Фильмы не найдены для режиссера с id " + directorId);
+        }
+
+        return films;
     }
 
     public Collection<Film> getRecommendations(Integer userId) {
@@ -165,13 +174,10 @@ public class FilmService {
         List<Film> films;
 
         if (by.contains("title") && by.contains("director")) {
-            //Ищем и по режиссёру и по названию
             films = filmStorage.searchFilmsByDirectorTitle(query);
         } else if (by.contains("director")) {
-            //Ищем по режиссёру
             films = filmStorage.searchFilmsByDirector(query);
         } else {
-            //По названию фильма
             films = filmDbStorage.searchFilmsByTitle(query);
         }
 

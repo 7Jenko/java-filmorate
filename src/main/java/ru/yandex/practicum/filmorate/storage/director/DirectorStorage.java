@@ -107,4 +107,9 @@ public class DirectorStorage {
 
         return directors;
     }
+
+    public void removeDirectors(int filmId) {
+        String sqlQuery = "DELETE FROM film_directors WHERE film_id = ?";
+        jdbc.update(sqlQuery, filmId);
+    }
 }
