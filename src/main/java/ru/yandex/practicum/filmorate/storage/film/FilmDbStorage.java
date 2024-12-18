@@ -282,8 +282,8 @@ public class FilmDbStorage implements FilmStorage {
                     "LEFT JOIN rating_mpa r ON f.rating_id = r.rating_id " +
                     "LEFT JOIN film_genres fg ON f.film_id = fg.film_id " +
                     "LEFT JOIN genres g ON fg.genre_id = g.genre_id " +
-                    "WHERE l.user_id IN ("+ String.join(",",
-                    Collections.nCopies(similarUsers.size(), "?")) +") " +
+                    "WHERE l.user_id IN (" + String.join(",",
+                    Collections.nCopies(similarUsers.size(), "?")) + ") " +
                     "AND f.film_id NOT IN (SELECT film_id FROM likes WHERE user_id = ?) " +
                     "GROUP BY f.film_id;";
 
