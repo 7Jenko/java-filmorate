@@ -112,4 +112,5 @@ public class DirectorStorage {
         String sqlQuery = "DELETE FROM film_directors WHERE film_id = ?";
         jdbc.update(sqlQuery, filmId);
     }
+    //check
 }
