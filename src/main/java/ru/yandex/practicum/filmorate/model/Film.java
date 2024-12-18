@@ -5,7 +5,9 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -36,7 +38,7 @@ public class Film {
 
     @NotNull(message = "Жанры не могут быть пустыми.")
     @Builder.Default
-    private Set<Genre> genres = new HashSet<>();
+    private List<Genre> genres = new ArrayList<>();
 
     @NotNull(message = "Рейтинг MPA не может быть пустым.")
     private RatingMpa mpa;
