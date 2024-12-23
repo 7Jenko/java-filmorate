@@ -35,6 +35,10 @@ public class LikeDbStorage implements LikeStorage {
 
     @Override
     public void deleteLike(int filmId, int userId) {
+        if (!existsLike(filmId, userId)) {
+            log.warn("Пользователь с ID {} не поставил лайк фильму {}", userId, filmId);
+            return;
+        }
         jdbcTemplate.update(DELETE_LIKE_QUERY, filmId, userId);
     }
 

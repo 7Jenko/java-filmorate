@@ -15,125 +15,107 @@ import java.util.List;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
     private final EventService eventService;
 
-    public Review createReview(Review review) {
-        User user = userStorage.getUserById(Math.toIntExact(review.getUserId()));
-        if (user == null) {
-            throw new NotFoundException("User with id = %d not found".formatted(review.getUserId()));
-        }
+    public ReviewService(ReviewStorage reviewStorage, UserStorage userStorage, FilmStorage filmStorage, EventService eventService) {
+        this.reviewStorage = reviewStorage;
+        this.userStorage = userStorage;
+        this.filmStorage = filmStorage;
+        this.eventService = eventService;
+    }
 
-        Film film = filmStorage.getFilmById(Math.toIntExact(review.getFilmId()));
-        if (film == null) {
-            throw new NotFoundException("Film with id = %d not found".formatted(review.getFilmId()));
-        }
+    public Review createReview(Review review) {
+        int userId = review.getUserId().intValue();
+        int filmId = review.getFilmId().intValue();
+
+        User user = userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = %d not found".formatted(review.getUserId())));
+
+        Film film = filmStorage.getFilmById(filmId)
+                .orElseThrow(() -> new NotFoundException("Film with id = %d not found".formatted(review.getFilmId())));
 
         Long id = reviewStorage.createReview(review);
-
         review.setReviewId(id);
         review.setUseful(0L);
-        eventService.createEvent(
-                Math.toIntExact(review.getUserId()),
-                EventType.REVIEW,
-                EventOperation.ADD,
-                Math.toIntExact(review.getReviewId())
-        );
+
+        eventService.createEvent(userId, EventType.REVIEW, EventOperation.ADD, id.intValue());
 
         return review;
     }
 
     public Review updateReview(RequestUpdateReviewDto reviewDto) {
         Review review = reviewStorage.findById(reviewDto.getReviewId())
-                .orElseThrow(() -> new NotFoundException(
-                        "Review with id = %d not found".formatted(reviewDto.getReviewId())
-                ));
+                .orElseThrow(() -> new NotFoundException("Review with id = %d not found".formatted(reviewDto.getReviewId())));
 
-        User user = userStorage.getUserById(Math.toIntExact(review.getUserId()));
-        if (user == null) {
-            throw new NotFoundException("User with id = %d not found".formatted(review.getUserId()));
-        }
+        int userId = review.getUserId().intValue();
+        int filmId = review.getFilmId().intValue();
 
-        Film film = filmStorage.getFilmById(Math.toIntExact(review.getFilmId()));
-        if (film == null) {
-            throw new NotFoundException("Film with id = %d not found".formatted(review.getFilmId()));
-        }
+        User user = userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = %d not found".formatted(userId)));
+
+        Film film = filmStorage.getFilmById(filmId)
+                .orElseThrow(() -> new NotFoundException("Film with id = %d not found".formatted(filmId)));
 
         if (reviewDto.getContent() != null) {
             if (reviewDto.getContent().isBlank()) {
                 throw new ValidationException("Content cannot be blank");
             }
-
             review.setContent(reviewDto.getContent());
         }
 
         if (reviewDto.getIsPositive() != null) {
             review.setIsPositive(reviewDto.getIsPositive());
         }
+
         review = reviewStorage.updateReview(review);
 
-        eventService.createEvent(
-                Math.toIntExact(review.getUserId()),
-                EventType.REVIEW,
-                EventOperation.UPDATE,
-                Math.toIntExact(review.getReviewId())
-        );
+        eventService.createEvent(userId, EventType.REVIEW, EventOperation.UPDATE, review.getReviewId().intValue());
 
         return review;
     }
 
     public void deleteById(Long id) {
-        eventService.createEvent(
-                Math.toIntExact(reviewStorage.findById(id).get().getUserId()),
-                EventType.REVIEW,
-                EventOperation.REMOVE,
-                Math.toIntExact(id)
-        );
+        Review review = reviewStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException("Review with id = %d not found".formatted(id)));
+
+        eventService.createEvent(review.getUserId().intValue(), EventType.REVIEW, EventOperation.REMOVE, id.intValue());
         reviewStorage.deleteById(id);
     }
 
     public Review findById(Long id) {
         return reviewStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException(
-                        "Review with id = %d not found".formatted(id)
-                ));
+                .orElseThrow(() -> new NotFoundException("Review with id = %d not found".formatted(id)));
     }
 
-    public List<Review> findTop(Long filmDd, long limit) {
-        if (filmDd == null) {
+    public List<Review> findTop(Long filmId, long limit) {
+        if (filmId == null) {
             return reviewStorage.findTop(limit);
         } else {
-            return reviewStorage.findTopByFilmId(filmDd, limit);
+            return reviewStorage.findTopByFilmId(filmId, limit);
         }
     }
 
     public void addLike(Long reviewId, Long userId, boolean isLike) {
         reviewStorage.findById(reviewId)
-                .orElseThrow(() -> new NotFoundException(
-                        "Review with id = %d not found".formatted(reviewId)
-                ));
+                .orElseThrow(() -> new NotFoundException("Review with id = %d not found".formatted(reviewId)));
 
-        User user = userStorage.getUserById(Math.toIntExact(userId));
-        if (user == null) {
-            throw new NotFoundException("User with id = %d not found".formatted(userId));
-        }
+        User user = userStorage.getUserById(userId.intValue())
+                .orElseThrow(() -> new NotFoundException("User with id = %d not found".formatted(userId)));
 
         reviewStorage.addLike(reviewId, userId, isLike);
     }
 
     public void deleteLike(Long reviewId, Long userId) {
-        if (reviewStorage.findById(reviewId).isEmpty()) {
-            throw new NotFoundException("Review with id = %d not found".formatted(reviewId));
+        if (!reviewStorage.existsById(reviewId)) {
+            throw new NotFoundException("Review with ID " + reviewId + " not found.");
         }
 
-        User user = userStorage.getUserById(Math.toIntExact(userId));
-        if (user == null) {
-            throw new NotFoundException("User with id = %d not found".formatted(userId));
-        }
+        User user = userStorage.getUserById(userId.intValue())
+                .orElseThrow(() -> new NotFoundException("User with ID " + userId + " not found."));
 
         reviewStorage.deleteLike(reviewId, userId);
     }

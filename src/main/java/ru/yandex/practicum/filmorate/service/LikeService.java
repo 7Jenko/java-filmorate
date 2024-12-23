@@ -25,32 +25,31 @@ public class LikeService {
     public void addLike(int filmId, int userId) {
         log.debug("Пользователь с ID {} ставит лайк фильму с ID {}", userId, filmId);
 
-        Film film = filmStorage.getFilmById(filmId);
-        if (film == null) {
-            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
-        }
+        Film film = filmStorage.getFilmById(filmId)
+                .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
 
-        User user = userStorage.getUserById(userId);
-        if (user == null) {
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
-        }
+        User user = userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + userId + " не найден"));
+
         likeStorage.addLike(filmId, userId);
     }
 
     public void deleteLike(int filmId, int userId) {
-        log.debug("Пользователь с ID {} ставит лайк фильму с ID {}", userId, filmId);
+        log.debug("Пользователь с ID {} удаляет лайк у фильма с ID {}", userId, filmId);
 
-        Film film = filmStorage.getFilmById(filmId);
-        if (film == null) {
-            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
-        }
+        Film film = filmStorage.getFilmById(filmId)
+                .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
 
-        User user = userStorage.getUserById(userId);
-        if (user == null) {
-            throw new NotFoundException("Пользователь с ID " + userId + " не найден");
+        User user = userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + userId + " не найден"));
+
+        if (!likeStorage.existsLike(filmId, userId)) {
+            log.warn("Лайк от пользователя с ID {} для фильма с ID {} не найден", userId, filmId);
+            throw new NotFoundException("Лайк от пользователя с ID " + userId + " для фильма с ID " + filmId + " не найден");
         }
 
         likeStorage.deleteLike(filmId, userId);
+        log.info("Лайк от пользователя с ID {} для фильма с ID {} успешно удален", userId, filmId);
     }
 
     public List<Film> getPopular(Integer count) {

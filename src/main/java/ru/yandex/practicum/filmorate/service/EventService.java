@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.EventOperation;
 import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -19,10 +20,10 @@ public class EventService {
     private final EventStorage eventStorage;
     private final UserStorage userStorage;
 
-    public List<Event> getFeed(int userId) {
-        Optional.ofNullable(userStorage.getUserById(userId))
+    public List<Event> getFeed(Long userId) {
+        userStorage.getUserById(Math.toIntExact(userId))
                 .orElseThrow(() -> new NotFoundException("Пользователя с id = " + userId + " не существует"));
-        return eventStorage.getFeed(userId);
+        return eventStorage.getFeed(Math.toIntExact(userId));
     }
 
     public void createEvent(int userId, EventType eventType, EventOperation eventOperation, int entityId) {

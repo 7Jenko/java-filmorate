@@ -26,7 +26,6 @@ public class FilmService {
     private final DirectorStorage directorStorage;
     private final GenreDbStorage genreStorage;
     public final FilmRowMapper mapper;
-    private final JdbcTemplate jdbcTemplate;
     private final EventService eventService;
     private final UserStorage userStorage;
 
@@ -42,7 +41,6 @@ public class FilmService {
         this.directorStorage = directorStorage;
         this.genreStorage = genreStorage;
         this.mapper = mapper;
-        this.jdbcTemplate = jdbcTemplate;
         this.eventService = eventService;
     }
 
@@ -57,27 +55,22 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
-        if (filmStorage.getFilmById(film.getId()) == null) {
+        if (filmStorage.getFilmById(film.getId()).isEmpty()) {
             throw new NotFoundException("Фильм с ID " + film.getId() + " не найден");
         }
         return filmStorage.updateFilm(film);
     }
 
     public Film getFilmById(int filmId) {
-
-        Film film = filmStorage.getFilmById(filmId);
-
-        if (film == null) {
-            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
-        }
-        return film;
+        return filmStorage.getFilmById(filmId)
+                .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
     }
 
     public void removeFilm(int filmId) {
         filmStorage.removeFilmGenres(filmId);
         filmStorage.removeLikesByFilmId(filmId);
 
-        if (filmStorage.getFilmById(filmId) == null) {
+        if (filmStorage.getFilmById(filmId).isEmpty()) {
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }
         filmStorage.removeFilm(filmId);
@@ -90,7 +83,7 @@ public class FilmService {
     public void addLike(int filmId, int userId) {
         filmStorage.getFilmById(filmId);
 
-        if (userStorage.getUserById(userId) == null) {
+        if (userStorage.getUserById(userId).isEmpty()) {
             log.warn("Пользователь с ID {} не найден", userId);
             return;
         }
@@ -101,12 +94,11 @@ public class FilmService {
     }
 
     public void deleteLike(int filmId, int userId) {
-        filmStorage.getFilmById(filmId);
+        filmStorage.getFilmById(filmId)
+                .orElseThrow(() -> new NotFoundException("Film with ID " + filmId + " not found"));
 
-        if (userStorage.getUserById(userId) == null) {
-            log.warn("Пользователь с ID {} не найден", userId);
-            return;
-        }
+        User user = userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("User with ID " + userId + " not found"));
 
         likeDbStorage.deleteLike(filmId, userId);
         log.info("Пользователь {} отменил лайк фильма {}", userId, filmId);

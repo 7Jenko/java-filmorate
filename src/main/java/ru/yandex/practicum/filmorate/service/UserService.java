@@ -40,42 +40,49 @@ public class UserService {
     }
 
     public void addFriend(Integer userId, Integer friendId) {
-        checkUser(userId, friendId);
+        validateUsersExistence(userId, friendId);
         userStorage.addFriend(userId, friendId);
 
-        log.info("Друг успешно добавлен");
+        log.info("Друг успешно добавлен: пользователь ID = {}, друг ID = {}", userId, friendId);
         eventService.createEvent(userId, EventType.FRIEND, EventOperation.ADD, friendId);
     }
 
     public void removeFriend(Integer userId, Integer friendId) {
-        checkUser(userId, friendId);
+        validateUsersExistence(userId, friendId);
         userStorage.removeFriend(userId, friendId);
-        log.info("Друг успешно удален");
+
+        log.info("Друг успешно удален: пользователь ID = {}, друг ID = {}", userId, friendId);
         eventService.createEvent(userId, EventType.FRIEND, EventOperation.REMOVE, friendId);
     }
 
     public List<User> getAllFriends(Integer userId) {
-        checkUser(userId, userId);
+        checkUserExistence(userId);
         List<User> result = userStorage.getFriends(userId);
-        log.info("Друзья пользователя с ID = " + userId + result);
+        log.info("Друзья пользователя с ID = {}: {}", userId, result);
         return result;
     }
 
     public List<User> getCommonFriends(Integer user1Id, Integer user2Id) {
-        checkUser(user1Id, user2Id);
+        validateUsersExistence(user1Id, user2Id);
         List<User> result = userStorage.getCommonFriends(user1Id, user2Id);
-        log.info("Общие друзья пользователя с ID " + " {} и {} {} ", user1Id, user2Id, result);
+        log.info("Общие друзья пользователя с ID {} и {}: {}", user1Id, user2Id, result);
         return result;
     }
 
     public User getUserById(Integer id) {
-        User user = userStorage.getUserById(id);
-        return user;
+        return userStorage.getUserById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + id + " не найден"));
     }
 
-    private void checkUser(Integer userId, Integer friendId) {
-        userStorage.getUserById(userId);
-        userStorage.getUserById(friendId);
+    private void validateUsersExistence(Integer... userIds) {
+        for (Integer userId : userIds) {
+            userStorage.getUserById(userId).orElseThrow(() -> new NotFoundException("Пользователь с ID " + userId + " не найден"));
+        }
+    }
+
+    private void checkUserExistence(Integer userId) {
+        userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + userId + " не найден"));
     }
 
     public void deleteUserById(Integer id) {
@@ -86,13 +93,9 @@ public class UserService {
     }
 
     public static void validationUserName(User user) {
-
         if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
-            log.debug(
-                    "В запросе на обновление пользователя с id={} отсутствует поле name, будет использовано поле login",
-                    user.getId()
-            );
+            log.debug("В запросе на обновление пользователя с id={} отсутствует поле name, будет использовано поле login", user.getId());
         }
     }
 }

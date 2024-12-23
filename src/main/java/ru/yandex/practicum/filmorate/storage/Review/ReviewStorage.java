@@ -115,4 +115,10 @@ public class ReviewStorage {
     public void deleteLike(Long reviewId, Long userId) {
         jdbc.update(DELETE_LIKE_QUERY, reviewId, userId);
     }
+
+    public boolean existsById(Long reviewId) {
+        String sql = "SELECT COUNT(*) FROM reviews WHERE id = ?";
+        Integer count = jdbc.queryForObject(sql, Integer.class, reviewId);
+        return count != null && count > 0;
+    }
 }

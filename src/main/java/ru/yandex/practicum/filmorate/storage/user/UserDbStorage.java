@@ -48,7 +48,9 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        getUserById(user.getId());
+        if (getUserById(user.getId()).isEmpty()) {
+            throw new NotFoundException("User with id " + user.getId() + " not found");
+        }
         String sqlQuery = "UPDATE users "
                 + "SET user_name = ?, "
                 + "login = ?, "
@@ -81,13 +83,13 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(int userId) {
+    public Optional<User> getUserById(int userId) {
         String sqlQuery = "SELECT * FROM users WHERE user_id = ?";
         SqlRowSet srs = jdbcTemplate.queryForRowSet(sqlQuery, userId);
         if (srs.next()) {
-            return userMap(srs);
+            return Optional.of(userMap(srs));
         } else {
-            throw new NotFoundException("User with ID=" + userId + " not found!");
+            return Optional.empty();
         }
     }
 
