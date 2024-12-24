@@ -113,16 +113,14 @@ public class FilmService {
 
     public List<Film> getFilmsByDirectorSorted(Long directorId, String sortBy) {
         List<Film> films;
+        SortType sortType = SortType.fromString(sortBy);
 
         log.info("Возвращаем отсортированный список фильмов режиссера {}", directorId);
 
-        if ("year".equalsIgnoreCase(sortBy)) {
-            films = filmStorage.getDirectorFilmSortedByYear(directorId);
-        } else if ("likes".equalsIgnoreCase(sortBy)) {
-            films = filmStorage.getDirectorFilmSortedByLike(directorId);
-        } else {
-            log.warn("Невалидный параметр сортировки - {}", sortBy);
-            throw new IllegalArgumentException("Invalid sortBy parameter");
+        switch (sortType) {
+            case YEAR -> films = filmStorage.getDirectorFilmSortedByYear(directorId);
+            case LIKES -> films = filmStorage.getDirectorFilmSortedByLike(directorId);
+            default -> throw new IllegalArgumentException("Неверный параметр сортировки: " + sortType);
         }
 
         if (films.isEmpty()) {
@@ -161,13 +159,9 @@ public class FilmService {
         Map<Long, Set<Director>> filmsDirectors = directorStorage.getAllFilmsDirectors();
 
         for (Film film : films) {
-            Set<Director> directors = filmsDirectors.get(film.getId());
+            Set<Director> directors = filmsDirectors.getOrDefault(film.getId(), new HashSet<>());
 
-            if (directors == null || directors.isEmpty()) {
-                film.setDirectors(null);
-            } else {
-                film.setDirectors(directors);
-            }
+            film.setDirectors(directors.isEmpty() ? null : directors);
         }
     }
 
