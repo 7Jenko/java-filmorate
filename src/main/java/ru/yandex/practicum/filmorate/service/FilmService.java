@@ -149,7 +149,6 @@ public class FilmService {
 
         Map<Integer, List<Genre>> filmGenres = genreStorage.getGenresByFilmIds(filmIds);
 
-        Map<Long, List<Genre>> filmGenres = (Map<Long, List<Genre>>) genreStorage.getAllGenres();
         log.info("Добавляем жанры к фильмам");
 
         for (Film film : films) {
