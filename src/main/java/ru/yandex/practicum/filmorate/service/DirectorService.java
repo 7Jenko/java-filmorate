@@ -15,35 +15,37 @@ public class DirectorService {
     private final DirectorStorage directorStorage;
 
     public Director getById(Long directorId) {
+        log.info("Возвращаем  режиссера с id {}", directorId);
         return directorStorage.getById(directorId).orElseThrow(() ->
                 new NotFoundException("Director with ID %d not found".formatted(directorId)));
     }
 
     public List<Director> getAll() {
+        log.info("Возвращаем всех режиссеров");
         return directorStorage.getAll();
     }
 
     public Director create(Director director) {
+        log.info("Создаем режиссера");
         return directorStorage.create(director);
     }
 
     public Director update(Director newDirector) {
-        log.debug("Checking existence of director with ID {} for updating", newDirector.getId());
+        log.info("Обновляем режиссера с id {}", newDirector.getId());
         if (directorStorage.getById(newDirector.getId()).isPresent()) {
-            log.trace("Updating film in storage");
             return directorStorage.update(newDirector);
         }
-        log.warn("Film with ID {} not found", newDirector.getId());
-        throw new NotFoundException("Film not found!");
+        log.warn("Не найден режиссер с id {}", newDirector.getId());
+        throw new NotFoundException("Director not found!");
     }
 
     public void deleteById(Long directorId) {
-        log.debug("Checking existence of director with ID {} for deleting", directorId);
+        log.info("Удаляем режиссера с id {}", directorId);
         if (directorStorage.getById(directorId).isEmpty()) {
-            log.warn("Director with ID {} not found", directorId);
+            log.warn("Режиссер с id не найден {}", directorId);
             throw new NotFoundException("Director not found!");
         }
-        log.trace("Deleting director in storage");
+
         directorStorage.deleteById(directorId);
     }
 }

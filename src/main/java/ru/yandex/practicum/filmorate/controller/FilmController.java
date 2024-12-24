@@ -8,10 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmSearchCriteria;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.LikeService;
-
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -80,21 +79,20 @@ public class FilmController {
     }
 
     @GetMapping("/director/{directorId}")
-    public List<Film> getFilmsByDirector(
-            @PathVariable Long directorId,
-            @RequestParam String sortBy) {
+    public List<Film> getFilmsByDirector(@PathVariable Long directorId,
+                                         @RequestParam(defaultValue = "likes") String sortBy) {
         return filmService.getFilmsByDirectorSorted(directorId, sortBy);
     }
 
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Film> searchFilms(@RequestParam String query, @RequestParam ArrayList<String> by) {
+    public Collection<Film> searchFilms(@RequestParam String query, @RequestParam List<FilmSearchCriteria> by) {
         return filmService.searchFilms(query, by);
     }
 
     @GetMapping("/common")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Film> getMostPopularFilms(
+    public Collection<Film> getCommonFilms(
             @RequestParam(name = "userId") Integer userId,
             @RequestParam(name = "friendId") Integer friendId
     ) {
