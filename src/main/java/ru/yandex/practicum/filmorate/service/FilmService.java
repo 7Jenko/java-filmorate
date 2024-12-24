@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -141,7 +142,13 @@ public class FilmService {
     }
 
     private void setGenresForFilms(List<Film> films) {
-        Map<Long, List<Genre>> filmGenres = (Map<Long, List<Genre>>) genreStorage.getAllGenres();
+        List<Integer> filmIds = films
+                .stream()
+                .map(Film::getId)
+                .collect(Collectors.toList());
+
+        Map<Integer, List<Genre>> filmGenres = genreStorage.getGenresByFilmIds(filmIds);
+
         log.info("Добавляем жанры к фильмам");
 
         for (Film film : films) {

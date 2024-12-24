@@ -26,7 +26,7 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        validationUserName(user);
+        updateUserName(user);
         log.info("Добавление пользователя: {}", user);
         return userStorage.createUser(user);
     }
@@ -86,13 +86,12 @@ public class UserService {
     }
 
     public void deleteUserById(Integer id) {
+        checkUserExistence(id);
         userStorage.removeAllFriends(id);
-        if (!userStorage.deleteUserById(id)) {
-            throw new NotFoundException("Пользователь с id " + id + " не найден");
-        }
+        userStorage.deleteUserById(id);
     }
 
-    public static void validationUserName(User user) {
+    public static void updateUserName(User user) {
         if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
             log.debug("В запросе на обновление пользователя с id={} отсутствует поле name, будет использовано поле login", user.getId());

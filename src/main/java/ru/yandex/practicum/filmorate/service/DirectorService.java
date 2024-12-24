@@ -27,7 +27,6 @@ public class DirectorService {
 
     public Director create(Director director) {
         log.info("Создаем режиссера");
-        director.setId(generateId());
         return directorStorage.create(director);
     }
 
@@ -48,13 +47,5 @@ public class DirectorService {
         }
 
         directorStorage.deleteById(directorId);
-    }
-
-    private Long generateId() {
-        Long currentId = directorStorage.getAll().stream()
-                .mapToLong(Director::getId)
-                .max()
-                .orElse(0);
-        return ++currentId;
     }
 }
