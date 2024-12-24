@@ -5,7 +5,9 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -22,7 +24,7 @@ public class Film {
     @Size(max = 200, message = "Максимальная длина описания — 200 символов.")
     private String description;
 
-    @PastOrPresent(message = "Дата релиза не может быть раньше 28 декабря 1895 года.")
+    @NotNull(message = "Дата не может быть пустой")
     private LocalDate releaseDate;
 
     @NotNull(message = "Продолжительность фильма должна быть положительным числом.")
@@ -31,14 +33,19 @@ public class Film {
 
     @AssertTrue(message = "Дата релиза не может быть раньше 28 декабря 1895 года.")
     private boolean isRightReleaseDate() {
-        return this.releaseDate.isAfter(MIN_DATE_RELEASE);
+        return releaseDate != null && !releaseDate.isBefore(MIN_DATE_RELEASE);
     }
 
     @NotNull(message = "Жанры не могут быть пустыми.")
-    private Set<Genre> genres = new HashSet<>();
+    @Builder.Default
+    private List<Genre> genres = new ArrayList<>();
 
     @NotNull(message = "Рейтинг MPA не может быть пустым.")
     private RatingMpa mpa;
+
+    @NotNull(message = "Режиссеры не могут быть пустыми.")
+    @Builder.Default
+    private Set<Director> directors = new HashSet<>();
 
     public void addGenre(Genre genre) {
         genres.add(genre);
@@ -51,6 +58,4 @@ public class Film {
     public void removeGenre(Genre genre) {
         genres.remove(genre);
     }
-
-
 }

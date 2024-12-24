@@ -9,4 +9,6 @@ public interface LikeStorage {
     void deleteLike(int filmId, int userId);
 
     List<Film> getPopular(Integer count);
+
+    boolean existsLike(int filmId, int userId);
 }
