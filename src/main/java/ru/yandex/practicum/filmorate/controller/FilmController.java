@@ -88,9 +88,6 @@ public class FilmController {
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> searchFilms(@RequestParam String query, @RequestParam List<FilmSearchCriteria> by) {
-
-        System.out.println("Мы тут");
-
         return filmService.searchFilms(query, by);
     }
 
