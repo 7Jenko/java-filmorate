@@ -11,8 +11,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.FilmSearchCriteria;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.LikeService;
-
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
