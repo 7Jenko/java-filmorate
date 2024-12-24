@@ -23,7 +23,7 @@ public class LikeService {
     private final UserDbStorage userStorage;
 
     public void addLike(int filmId, int userId) {
-        log.debug("Пользователь с ID {} ставит лайк фильму с ID {}", userId, filmId);
+        log.info("Пользователь с ID {} ставит лайк фильму с ID {}", userId, filmId);
 
         Film film = filmStorage.getFilmById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
@@ -35,7 +35,7 @@ public class LikeService {
     }
 
     public void deleteLike(int filmId, int userId) {
-        log.debug("Пользователь с ID {} удаляет лайк у фильма с ID {}", userId, filmId);
+        log.info("Пользователь с ID {} удаляет лайк у фильма с ID {}", userId, filmId);
 
         Film film = filmStorage.getFilmById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
@@ -53,7 +53,7 @@ public class LikeService {
     }
 
     public List<Film> getPopular(Integer count) {
-        log.debug("Запрос на получение популярных фильмов с count: {}", count);
+        log.info("Запрос на получение популярных фильмов с count: {}", count);
         try {
             List<Film> popularFilms = likeStorage.getPopular(count);
             if (popularFilms == null) {

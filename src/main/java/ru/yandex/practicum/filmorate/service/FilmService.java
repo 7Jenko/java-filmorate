@@ -45,7 +45,7 @@ public class FilmService {
     }
 
     public Film addFilm(Film film) {
-        log.debug("Добавление фильма: {}", film);
+        log.info("Добавление фильма: {}", film);
         return filmStorage.createFilm(film);
     }
 
@@ -56,27 +56,32 @@ public class FilmService {
 
     public Film updateFilm(Film film) {
         if (filmStorage.getFilmById(film.getId()).isEmpty()) {
+            log.warn("Возвращаемый фильм с ID {} не найден", film.getId());
             throw new NotFoundException("Фильм с ID " + film.getId() + " не найден");
         }
         return filmStorage.updateFilm(film);
     }
 
     public Film getFilmById(int filmId) {
+        log.info("Возвращаем фильм с id {} ", filmId);
         return filmStorage.getFilmById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
     }
 
     public void removeFilm(int filmId) {
+        log.info("Удаляем фильм с id {} ", filmId);
         filmStorage.removeFilmGenres(filmId);
         filmStorage.removeLikesByFilmId(filmId);
 
         if (filmStorage.getFilmById(filmId).isEmpty()) {
+            log.warn("Удаляемый фильм с ID {} не найден", filmId);
             throw new NotFoundException("Фильм с ID " + filmId + " не найден");
         }
         filmStorage.removeFilm(filmId);
     }
 
     public List<Film> getAllFilms() {
+        log.info("Возвращаем все фильмы");
         return filmStorage.getAllFilms();
     }
 
@@ -109,15 +114,19 @@ public class FilmService {
     public List<Film> getFilmsByDirectorSorted(Long directorId, String sortBy) {
         List<Film> films;
 
+        log.info("Возвращаем отсортированный список фильмов режиссера {}", directorId);
+
         if ("year".equalsIgnoreCase(sortBy)) {
             films = filmStorage.getDirectorFilmSortedByYear(directorId);
         } else if ("likes".equalsIgnoreCase(sortBy)) {
             films = filmStorage.getDirectorFilmSortedByLike(directorId);
         } else {
+            log.warn("Невалидный параметр сортировки - {}", sortBy);
             throw new IllegalArgumentException("Invalid sortBy parameter");
         }
 
         if (films.isEmpty()) {
+            log.warn("Фильмы не найдены для режиссера с id {}", directorId);
             throw new NotFoundException("Фильмы не найдены для режиссера с id " + directorId);
         }
 
@@ -129,11 +138,14 @@ public class FilmService {
     }
 
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        log.info("Возвращаем общие фильмы пользователя {} и пользователя {}", userId, friendId);
         return filmStorage.getCommonFilms(userId, friendId);
     }
 
     private void setGenresForFilms(List<Film> films) {
         Map<Long, List<Genre>> filmGenres = (Map<Long, List<Genre>>) genreStorage.getAllGenres();
+        log.info("Добавляем жанры к фильмам");
+
         for (Film film : films) {
             List<Genre> genres = filmGenres.getOrDefault(film.getId(), new ArrayList<>());
             film.setGenres(genres);
@@ -144,6 +156,8 @@ public class FilmService {
         if (films == null) {
             return;
         }
+
+        log.info("Добавляем режиссеров к фильмам");
         Map<Long, Set<Director>> filmsDirectors = directorStorage.getAllFilmsDirectors();
 
         for (Film film : films) {
@@ -162,14 +176,17 @@ public class FilmService {
         setDirectorsForFilms(films);
     }
 
-    public List<Film> searchFilms(String query, ArrayList<String> by) {
+    public List<Film> searchFilms(String query, List<FilmSearchCriteria> by) {
         List<Film> films;
 
-        if (by.contains("title") && by.contains("director")) {
+        if (by.contains(FilmSearchCriteria.title) && by.contains(FilmSearchCriteria.director)) {
+            log.info("Ищем фильм по названию и режиссеру - {}", query);
             films = filmStorage.searchFilmsByDirectorTitle(query);
-        } else if (by.contains("director")) {
+        } else if (by.contains(FilmSearchCriteria.director)) {
+            log.info("Ищем фильм по режиссеру - {}", query);
             films = filmStorage.searchFilmsByDirector(query);
         } else {
+            log.info("Ищем фильм по названию - {}", query);
             films = filmDbStorage.searchFilmsByTitle(query);
         }
 
