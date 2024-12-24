@@ -24,7 +24,6 @@ public class DirectorService {
     }
 
     public Director create(Director director) {
-        director.setId(generateId());
         return directorStorage.create(director);
     }
 
@@ -46,13 +45,5 @@ public class DirectorService {
         }
         log.trace("Deleting director in storage");
         directorStorage.deleteById(directorId);
-    }
-
-    private Long generateId() {
-        Long currentId = directorStorage.getAll().stream()
-                .mapToLong(Director::getId)
-                .max()
-                .orElse(0);
-        return ++currentId;
     }
 }

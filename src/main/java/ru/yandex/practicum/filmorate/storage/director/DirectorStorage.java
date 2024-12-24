@@ -3,10 +3,13 @@ package ru.yandex.practicum.filmorate.storage.director;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.sql.PreparedStatement;
 import java.util.*;
 
 @Repository
@@ -31,8 +34,22 @@ public class DirectorStorage {
     }
 
     public Director create(Director director) {
-        String insertDirectorQuery = "INSERT INTO directors (id, name) VALUES (?, ?)";
-        jdbc.update(insertDirectorQuery, director.getId(), director.getName());
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+
+        String insertDirectorQuery = "INSERT INTO directors (name) VALUES (?)";
+
+        jdbc.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(insertDirectorQuery, new String[]{"id"});
+            ps.setString(1, director.getName());
+            return ps;
+        }, keyHolder);
+
+        Long id = keyHolder.getKeyAs(Long.class);
+        if (id == null) {
+            throw new InternalServerException("Не удалось сохранить данные");
+        }
+
+        director.setId(id);
         return director;
     }
 
@@ -112,5 +129,4 @@ public class DirectorStorage {
         String sqlQuery = "DELETE FROM film_directors WHERE film_id = ?";
         jdbc.update(sqlQuery, filmId);
     }
-    //check
 }
