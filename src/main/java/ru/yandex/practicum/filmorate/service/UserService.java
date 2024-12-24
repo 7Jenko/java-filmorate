@@ -27,7 +27,7 @@ public class UserService {
 
     public User createUser(User user) {
         validationUserName(user);
-        log.debug("Добавление пользователя: {}", user);
+        log.info("Добавление пользователя: {}", user);
         return userStorage.createUser(user);
     }
 
